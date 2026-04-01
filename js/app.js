@@ -869,6 +869,18 @@ async function deletePengeluaran(rowIndex) {
 // DASHBOARD FUNCTIONS
 // ========================================
 
+// Fungsi untuk mengupdate active state pada navbar
+function setActiveNavMenu(activeMenu) {
+  const navLinks = document.querySelectorAll(".navbar-nav .nav-link");
+  navLinks.forEach((link) => {
+    link.classList.remove("active");
+    const linkText = link.textContent.trim();
+    if (linkText.includes(activeMenu)) {
+      link.classList.add("active");
+    }
+  });
+}
+
 function showDashboard() {
   const dashboardSection = document.getElementById("dashboardSection");
   const pengeluaranSection = document.getElementById("pengeluaranSection");
@@ -879,15 +891,7 @@ function showDashboard() {
   if (dataMasterSection) dataMasterSection.style.display = "none";
 
   loadDashboardData();
-
-  // Update active state pada navbar
-  const navLinks = document.querySelectorAll(".navbar-nav .nav-link");
-  navLinks.forEach((link) => {
-    link.classList.remove("active");
-    if (link.textContent.includes("Beranda")) {
-      link.classList.add("active");
-    }
-  });
+  setActiveNavMenu("Beranda"); // Set active menu
 }
 
 function showPengeluaran() {
@@ -906,19 +910,9 @@ function showPengeluaran() {
     tanggalInput.value = today;
   }
 
-  // Setup nominal input
   setupNominalInput("pengeluaranNominal");
-
   loadPengeluaranData();
-
-  // Update active state pada navbar
-  const navLinks = document.querySelectorAll(".navbar-nav .nav-link");
-  navLinks.forEach((link) => {
-    link.classList.remove("active");
-    if (link.textContent.includes("Pengeluaran")) {
-      link.classList.add("active");
-    }
-  });
+  setActiveNavMenu("Pengeluaran"); // Set active menu
 }
 
 function showDataMaster() {
@@ -931,15 +925,7 @@ function showDataMaster() {
   if (dataMasterSection) dataMasterSection.style.display = "block";
 
   refreshPaymentDisplay();
-
-  // Update active state pada navbar
-  const navLinks = document.querySelectorAll(".navbar-nav .nav-link");
-  navLinks.forEach((link) => {
-    link.classList.remove("active");
-    if (link.textContent.includes("Data Master")) {
-      link.classList.add("active");
-    }
-  });
+  setActiveNavMenu("Data Master"); // Set active menu
 }
 
 // ========================================

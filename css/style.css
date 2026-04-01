@@ -10,9 +10,230 @@ body {
   background-color: #f8f9fa;
 }
 
+/* ========================================
+   NAVBAR ELEGAN
+   ======================================== */
+
 .navbar {
-  background: linear-gradient(135deg, var(--primary-color) 0%, #3367d6 100%);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  padding: 0.75rem 1rem;
+}
+
+/* Brand / Logo */
+.navbar-brand {
+  padding: 0.5rem 0;
+  transition: transform 0.3s ease;
+}
+
+.navbar-brand:hover {
+  transform: translateY(-2px);
+}
+
+.brand-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  font-size: 2rem;
+  color: #ffd966;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.brand-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #fff, #ffd966);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-subtitle {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+}
+
+/* Navbar Links */
+.navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  margin: 0 0.25rem;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.navbar-nav .nav-link i {
+  margin-right: 8px;
+  font-size: 1.1rem;
+}
+
+/* Hover Effect */
+.navbar-nav .nav-link:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Active Menu - Elegan */
+.navbar-nav .nav-link.active {
+  color: #ffd966;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 217, 102, 0.15),
+    rgba(255, 217, 102, 0.05)
+  );
+  position: relative;
+}
+
+.navbar-nav .nav-link.active::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, #ffd966, #ffb347);
+  border-radius: 3px;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 60%;
+    opacity: 1;
+  }
+}
+
+.navbar-nav .nav-link.active i {
+  color: #ffd966;
+  text-shadow: 0 0 5px rgba(255, 217, 102, 0.5);
+}
+
+/* User Info */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 6px 12px;
+  border-radius: 40px;
+  transition: all 0.3s ease;
+}
+
+.user-info:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #ffd966;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.user-avatar:hover {
+  transform: scale(1.05);
+}
+
+.user-info span {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Google Button */
+.btn-google {
+  background: white;
+  color: #5a626e;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-google:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.btn-google i {
+  margin-right: 8px;
+  color: #ea4335;
+}
+
+/* Logout Button */
+.btn-outline-light {
+  border-radius: 30px;
+  padding: 6px 14px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-light:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 991.98px) {
+  .navbar-brand {
+    margin-right: auto;
+  }
+
+  .navbar-nav .nav-link {
+    margin: 0.25rem 0;
+  }
+
+  .navbar-nav .nav-link.active::before {
+    width: 40px;
+    left: 20px;
+    transform: none;
+  }
+
+  .user-info {
+    margin-top: 10px;
+    justify-content: center;
+  }
+
+  .btn-google,
+  .btn-outline-light {
+    width: 100%;
+    text-align: center;
+  }
 }
 
 .card {
