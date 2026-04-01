@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aplikasi Pembayaran Kas</title>
-        <link rel="icon" type="image/x-icon" href="blink.png" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -18,7 +17,11 @@
   <body>
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem">
+      <div
+        class="spinner-border text-primary"
+        role="status"
+        style="width: 3rem; height: 3rem"
+      >
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
@@ -29,14 +32,24 @@
         <a class="navbar-brand" href="#" onclick="showDashboard()">
           <i class="bi bi-cash-coin"></i> Aplikasi Pembayaran Kas
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav me-auto">
             <li class="nav-item">
-              <a class="nav-link active" href="#" onclick="showDashboard()">
+              <a class="nav-link" href="#" onclick="showDashboard()">
                 <i class="bi bi-house-door"></i> Beranda
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" onclick="showPengeluaran()">
+                <i class="bi bi-cart-dash"></i> Pengeluaran
               </a>
             </li>
             <li class="nav-item">
@@ -55,7 +68,10 @@
               <div class="user-info text-white">
                 <img id="userAvatar" class="user-avatar" src="" alt="User" />
                 <span id="userName"></span>
-                <button class="btn btn-outline-light btn-sm ms-2" onclick="handleSignoutClick()">
+                <button
+                  class="btn btn-outline-light btn-sm ms-2"
+                  onclick="handleSignoutClick()"
+                >
                   <i class="bi bi-box-arrow-right"></i> Logout
                 </button>
               </div>
@@ -98,20 +114,46 @@
             </div>
           </div>
           <div class="col-md-3">
-            <div class="card bg-warning text-white">
+            <div class="card bg-danger text-white">
               <div class="card-body">
-                <h5 class="card-title">Total Target</h5>
-                <h2 id="totalTarget">Rp 0</h2>
-                <small>Target Seluruh Kas</small>
+                <h5 class="card-title">Total Pengeluaran</h5>
+                <h2 id="totalPengeluaran">Rp 0</h2>
+                <small>Seluruh Pengeluaran</small>
               </div>
             </div>
           </div>
           <div class="col-md-3">
             <div class="card bg-info text-white">
               <div class="card-body">
-                <h5 class="card-title">Persentase</h5>
-                <h2 id="totalPersentase">0%</h2>
-                <small>Terkumpul dari Target</small>
+                <h5 class="card-title">Saldo Kas</h5>
+                <h2 id="totalSaldo">Rp 0</h2>
+                <small>Setoran - Pengeluaran</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grafik Sederhana (Opsional) -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                  <i class="bi bi-graph-up"></i> Ringkasan Kas
+                </h5>
+              </div>
+              <div class="card-body">
+                <canvas id="kasChart" width="400" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-pie-chart"></i> Persentase</h5>
+              </div>
+              <div class="card-body">
+                <canvas id="persentaseChart" width="400" height="200"></canvas>
               </div>
             </div>
           </div>
@@ -120,13 +162,16 @@
         <!-- Ringkasan per Master Kas -->
         <div class="card mb-4">
           <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-wallet2"></i> Ringkasan per Jenis Kas</h5>
+            <h5 class="mb-0">
+              <i class="bi bi-wallet2"></i> Ringkasan per Jenis Kas
+            </h5>
           </div>
           <div class="card-body">
             <div class="table-responsive">
               <table class="table table-hover">
                 <thead class="table-light">
-                  32<th>No</th>
+                  <tr>
+                    <th>No</th>
                     <th>Nama Kas</th>
                     <th>Periode</th>
                     <th>Target</th>
@@ -147,11 +192,18 @@
 
         <!-- Rekap Pembayaran per Personal -->
         <div class="card">
-          <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="bi bi-people"></i> Rekap Pembayaran per Personal</h5>
+          <div
+            class="card-header d-flex justify-content-between align-items-center"
+          >
+            <h5 class="mb-0">
+              <i class="bi bi-people"></i> Rekap Pembayaran per Personal
+            </h5>
             <div class="row g-2 w-50">
               <div class="col-md-12">
-                <select class="form-select form-select-sm" id="filterMasterKasRekap">
+                <select
+                  class="form-select form-select-sm"
+                  id="filterMasterKasRekap"
+                >
                   <option value="">Semua Kas</option>
                 </select>
               </div>
@@ -179,26 +231,188 @@
         </div>
       </div>
 
+      <!-- Menu Pengeluaran Section -->
+      <div id="pengeluaranSection" style="display: none">
+        <div class="row">
+          <div class="col-12">
+            <h2 class="mb-4">
+              <i class="bi bi-cart-dash"></i> Manajemen Pengeluaran
+            </h2>
+          </div>
+        </div>
+
+        <!-- Form Tambah Pengeluaran -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0">
+              <i class="bi bi-plus-circle"></i> Tambah Pengeluaran
+            </h5>
+          </div>
+          <div class="card-body">
+            <form id="pengeluaranForm">
+              <div class="row">
+                <div class="col-md-5 mb-3">
+                  <label for="pengeluaranKeterangan" class="form-label"
+                    >Keterangan <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="pengeluaranKeterangan"
+                    required
+                    placeholder="Contoh: Beli ATK, Listrik, dll"
+                  />
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="pengeluaranNominal" class="form-label"
+                    >Nominal (Rp) <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="pengeluaranNominal"
+                    required
+                    placeholder="0"
+                  />
+                </div>
+                <div class="col-md-3 mb-3">
+                  <label for="pengeluaranTanggal" class="form-label"
+                    >Tanggal <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="pengeluaranTanggal"
+                    required
+                  />
+                </div>
+                <div class="col-md-1 mb-3 d-flex align-items-end">
+                  <button
+                    type="button"
+                    class="btn btn-primary w-100"
+                    onclick="savePengeluaran()"
+                  >
+                    <i class="bi bi-save"></i> Simpan
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tabel Data Pengeluaran -->
+        <div class="card">
+          <div
+            class="card-header d-flex justify-content-between align-items-center"
+          >
+            <h5 class="mb-0"><i class="bi bi-list-ul"></i> Data Pengeluaran</h5>
+            <div class="row g-2">
+              <div class="col-md-6">
+                <input
+                  type="text"
+                  class="form-control form-control-sm"
+                  id="searchPengeluaran"
+                  placeholder="Cari keterangan..."
+                />
+              </div>
+              <div class="col-md-6">
+                <select
+                  class="form-select form-select-sm"
+                  id="filterBulanPengeluaran"
+                >
+                  <option value="">Semua Bulan</option>
+                  <option value="1">Januari</option>
+                  <option value="2">Februari</option>
+                  <option value="3">Maret</option>
+                  <option value="4">April</option>
+                  <option value="5">Mei</option>
+                  <option value="6">Juni</option>
+                  <option value="7">Juli</option>
+                  <option value="8">Agustus</option>
+                  <option value="9">September</option>
+                  <option value="10">Oktober</option>
+                  <option value="11">November</option>
+                  <option value="12">Desember</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>No</th>
+                    <th>Tanggal</th>
+                    <th>Keterangan</th>
+                    <th>Nominal</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="pengeluaranTableBody">
+                  <tr>
+                    <td colspan="5" class="text-center">Loading data...</td>
+                  </tr>
+                </tbody>
+                <tfoot class="table-light">
+                  <tr>
+                    <td colspan="3" class="text-end fw-bold">
+                      Total Pengeluaran:
+                    </td>
+                    <td class="fw-bold" id="totalPengeluaranFooter">Rp 0</td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Tabs Navigation untuk Menu Data Master -->
-      <div id="dataMasterSection" style="display: none;">
+      <div id="dataMasterSection" style="display: none">
         <ul class="nav nav-tabs" id="mainTabs" role="tablist">
           <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="pembayaran-tab" data-bs-toggle="tab" data-bs-target="#pembayaran" type="button">
+            <button
+              class="nav-link active"
+              id="pembayaran-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#pembayaran"
+              type="button"
+            >
               <i class="bi bi-cash-stack"></i> Pembayaran Kas
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button">
+            <button
+              class="nav-link"
+              id="personal-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#personal"
+              type="button"
+            >
               <i class="bi bi-people"></i> Master Personal
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link" id="tahun-tab" data-bs-toggle="tab" data-bs-target="#tahun" type="button">
+            <button
+              class="nav-link"
+              id="tahun-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#tahun"
+              type="button"
+            >
               <i class="bi bi-calendar-range"></i> Master Tahun
             </button>
           </li>
           <li class="nav-item" role="presentation">
-            <button class="nav-link" id="master-kas-tab" data-bs-toggle="tab" data-bs-target="#master-kas" type="button">
+            <button
+              class="nav-link"
+              id="master-kas-tab"
+              data-bs-toggle="tab"
+              data-bs-target="#master-kas"
+              type="button"
+            >
               <i class="bi bi-wallet2"></i> Master Pembayaran Kas
             </button>
           </li>
@@ -207,18 +421,36 @@
         <!-- Tabs Content -->
         <div class="tab-content" id="mainTabContent">
           <!-- Tab Pembayaran Kas -->
-          <div class="tab-pane fade show active" id="pembayaran" role="tabpanel">
+          <div
+            class="tab-pane fade show active"
+            id="pembayaran"
+            role="tabpanel"
+          >
             <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Data Pembayaran Kas</h5>
-                <button class="btn btn-primary btn-sm" onclick="showAddPembayaranModal()" id="btnAddPembayaran" disabled>
+              <div
+                class="card-header d-flex justify-content-between align-items-center"
+              >
+                <h5 class="mb-0">
+                  <i class="bi bi-cash-stack"></i> Data Pembayaran Kas
+                </h5>
+                <button
+                  class="btn btn-primary btn-sm"
+                  onclick="showAddPembayaranModal()"
+                  id="btnAddPembayaran"
+                  disabled
+                >
                   <i class="bi bi-plus-circle"></i> Tambah Pembayaran
                 </button>
               </div>
               <div class="card-body">
                 <div class="row mb-3">
                   <div class="col-md-4">
-                    <input type="text" class="form-control" id="searchPembayaran" placeholder="Cari nama personal..." />
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="searchPembayaran"
+                      placeholder="Cari nama personal..."
+                    />
                   </div>
                   <div class="col-md-3">
                     <select class="form-select" id="filterMasterKas">
@@ -262,9 +494,18 @@
           <!-- Tab Master Personal -->
           <div class="tab-pane fade" id="personal" role="tabpanel">
             <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-people"></i> Master Personal</h5>
-                <button class="btn btn-primary btn-sm" onclick="showAddPersonalModal()" id="btnAddPersonal" disabled>
+              <div
+                class="card-header d-flex justify-content-between align-items-center"
+              >
+                <h5 class="mb-0">
+                  <i class="bi bi-people"></i> Master Personal
+                </h5>
+                <button
+                  class="btn btn-primary btn-sm"
+                  onclick="showAddPersonalModal()"
+                  id="btnAddPersonal"
+                  disabled
+                >
                   <i class="bi bi-plus-circle"></i> Tambah Personal
                 </button>
               </div>
@@ -295,9 +536,18 @@
           <!-- Tab Master Tahun -->
           <div class="tab-pane fade" id="tahun" role="tabpanel">
             <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-calendar-range"></i> Master Tahun</h5>
-                <button class="btn btn-primary btn-sm" onclick="showAddTahunModal()" id="btnAddTahun" disabled>
+              <div
+                class="card-header d-flex justify-content-between align-items-center"
+              >
+                <h5 class="mb-0">
+                  <i class="bi bi-calendar-range"></i> Master Tahun
+                </h5>
+                <button
+                  class="btn btn-primary btn-sm"
+                  onclick="showAddTahunModal()"
+                  id="btnAddTahun"
+                  disabled
+                >
                   <i class="bi bi-plus-circle"></i> Tambah Tahun
                 </button>
               </div>
@@ -327,9 +577,18 @@
           <!-- Tab Master Pembayaran Kas -->
           <div class="tab-pane fade" id="master-kas" role="tabpanel">
             <div class="card">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-wallet2"></i> Master Pembayaran Kas</h5>
-                <button class="btn btn-primary btn-sm" onclick="showAddMasterKasModal()" id="btnAddMasterKas" disabled>
+              <div
+                class="card-header d-flex justify-content-between align-items-center"
+              >
+                <h5 class="mb-0">
+                  <i class="bi bi-wallet2"></i> Master Pembayaran Kas
+                </h5>
+                <button
+                  class="btn btn-primary btn-sm"
+                  onclick="showAddMasterKasModal()"
+                  id="btnAddMasterKas"
+                  disabled
+                >
                   <i class="bi bi-plus-circle"></i> Tambah Master Kas
                 </button>
               </div>
@@ -367,14 +626,25 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="personalModalTitle">Tambah Personal</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
           <div class="modal-body">
             <form id="personalForm">
               <input type="hidden" id="personalId" />
               <div class="mb-3">
-                <label for="personalNama" class="form-label">Nama <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="personalNama" required />
+                <label for="personalNama" class="form-label"
+                  >Nama <span class="text-danger">*</span></label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="personalNama"
+                  required
+                />
               </div>
               <div class="mb-3">
                 <label for="personalEmail" class="form-label">Email</label>
@@ -385,7 +655,9 @@
                 <input type="text" class="form-control" id="personalHP" />
               </div>
               <div class="mb-3">
-                <label for="personalStatus" class="form-label">Status <span class="text-danger">*</span></label>
+                <label for="personalStatus" class="form-label"
+                  >Status <span class="text-danger">*</span></label
+                >
                 <select class="form-select" id="personalStatus" required>
                   <option value="Aktif">Aktif</option>
                   <option value="Non-Aktif">Non-Aktif</option>
@@ -394,8 +666,20 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="button" class="btn btn-primary" onclick="savePersonal()">Simpan</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="savePersonal()"
+            >
+              Simpan
+            </button>
           </div>
         </div>
       </div>
@@ -407,21 +691,42 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="tahunModalTitle">Tambah Tahun</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
           <div class="modal-body">
             <form id="tahunForm">
               <input type="hidden" id="tahunId" />
               <div class="mb-3">
-                <label for="tahunValue" class="form-label">Tahun <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="tahunValue" min="2000" max="2100" required />
+                <label for="tahunValue" class="form-label"
+                  >Tahun <span class="text-danger">*</span></label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="tahunValue"
+                  min="2000"
+                  max="2100"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="tahunKeterangan" class="form-label">Keterangan</label>
-                <textarea class="form-control" id="tahunKeterangan" rows="3"></textarea>
+                <label for="tahunKeterangan" class="form-label"
+                  >Keterangan</label
+                >
+                <textarea
+                  class="form-control"
+                  id="tahunKeterangan"
+                  rows="3"
+                ></textarea>
               </div>
               <div class="mb-3">
-                <label for="tahunStatus" class="form-label">Status <span class="text-danger">*</span></label>
+                <label for="tahunStatus" class="form-label"
+                  >Status <span class="text-danger">*</span></label
+                >
                 <select class="form-select" id="tahunStatus" required>
                   <option value="Aktif">Aktif</option>
                   <option value="Non-Aktif">Non-Aktif</option>
@@ -430,8 +735,16 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="button" class="btn btn-primary" onclick="saveTahun()">Simpan</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Batal
+            </button>
+            <button type="button" class="btn btn-primary" onclick="saveTahun()">
+              Simpan
+            </button>
           </div>
         </div>
       </div>
@@ -442,32 +755,65 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="masterKasModalTitle">Tambah Master Kas</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title" id="masterKasModalTitle">
+              Tambah Master Kas
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
           <div class="modal-body">
             <form id="masterKasForm">
               <input type="hidden" id="masterKasId" />
               <div class="mb-3">
-                <label for="masterKasNama" class="form-label">Nama Kas <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="masterKasNama" required />
+                <label for="masterKasNama" class="form-label"
+                  >Nama Kas <span class="text-danger">*</span></label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="masterKasNama"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="masterKasPeriode" class="form-label">Periode <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="masterKasPeriode" placeholder="Contoh: Januari-Maret 2024" required />
+                <label for="masterKasPeriode" class="form-label"
+                  >Periode <span class="text-danger">*</span></label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="masterKasPeriode"
+                  placeholder="Contoh: Januari-Maret 2024"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="masterKasTahun" class="form-label">Tahun <span class="text-danger">*</span></label>
+                <label for="masterKasTahun" class="form-label"
+                  >Tahun <span class="text-danger">*</span></label
+                >
                 <select class="form-select" id="masterKasTahun" required>
                   <option value="">Pilih Tahun</option>
                 </select>
               </div>
               <div class="mb-3">
-                <label for="masterKasMax" class="form-label">Maksimal Setoran (Rp) <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="masterKasMax" required />
+                <label for="masterKasMax" class="form-label"
+                  >Maksimal Setoran (Rp)
+                  <span class="text-danger">*</span></label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="masterKasMax"
+                  required
+                />
               </div>
               <div class="mb-3">
-                <label for="masterKasStatus" class="form-label">Status <span class="text-danger">*</span></label>
+                <label for="masterKasStatus" class="form-label"
+                  >Status <span class="text-danger">*</span></label
+                >
                 <select class="form-select" id="masterKasStatus" required>
                   <option value="Aktif">Aktif</option>
                   <option value="Non-Aktif">Non-Aktif</option>
@@ -476,8 +822,20 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="button" class="btn btn-primary" onclick="saveMasterKas()">Simpan</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="saveMasterKas()"
+            >
+              Simpan
+            </button>
           </div>
         </div>
       </div>
@@ -488,66 +846,211 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="pembayaranModalTitle">Tambah Pembayaran</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title" id="pembayaranModalTitle">
+              Tambah Pembayaran
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
           <div class="modal-body">
             <form id="pembayaranForm">
               <input type="hidden" id="pembayaranId" />
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="pembayaranPersonal" class="form-label">Nama Personal <span class="text-danger">*</span></label>
+                  <label for="pembayaranPersonal" class="form-label"
+                    >Nama Personal <span class="text-danger">*</span></label
+                  >
                   <select class="form-select" id="pembayaranPersonal" required>
                     <option value="">Pilih Personal</option>
                   </select>
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label for="pembayaranMasterKas" class="form-label">Jenis Kas <span class="text-danger">*</span></label>
-                  <select class="form-select" id="pembayaranMasterKas" required onchange="updateTargetNominal()">
+                  <label for="pembayaranMasterKas" class="form-label"
+                    >Jenis Kas <span class="text-danger">*</span></label
+                  >
+                  <select
+                    class="form-select"
+                    id="pembayaranMasterKas"
+                    required
+                    onchange="updateTargetNominal()"
+                  >
                     <option value="">Pilih Jenis Kas</option>
                   </select>
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="pembayaranTanggal" class="form-label">Tanggal Pembayaran <span class="text-danger">*</span></label>
-                  <input type="date" class="form-control" id="pembayaranTanggal" required />
+                  <label for="pembayaranTanggal" class="form-label"
+                    >Tanggal Pembayaran
+                    <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="pembayaranTanggal"
+                    required
+                  />
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label for="pembayaranNominal" class="form-label">Nominal Bayar (Rp) <span class="text-danger">*</span></label>
-                  <input type="text" class="form-control" id="pembayaranNominal" required onchange="calculateStatus()" />
+                  <label for="pembayaranNominal" class="form-label"
+                    >Nominal Bayar (Rp)
+                    <span class="text-danger">*</span></label
+                  >
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="pembayaranNominal"
+                    required
+                    onchange="calculateStatus()"
+                  />
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Target Nominal (Rp)</label>
-                  <input type="text" class="form-control" id="targetNominal" readonly />
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="targetNominal"
+                    readonly
+                  />
                 </div>
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Total Sudah Dibayar (Rp)</label>
-                  <input type="text" class="form-control" id="totalSudahDibayar" readonly />
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="totalSudahDibayar"
+                    readonly
+                  />
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Sisa/Kelebihan</label>
-                  <input type="text" class="form-control" id="sisaPreview" readonly />
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="sisaPreview"
+                    readonly
+                  />
                 </div>
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Status Pembayaran</label>
-                  <input type="text" class="form-control" id="statusPreview" readonly />
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="statusPreview"
+                    readonly
+                  />
                 </div>
               </div>
               <div class="mb-3">
-                <label for="pembayaranBukti" class="form-label">Bukti Pembayaran (URL)</label>
-                <input type="url" class="form-control" id="pembayaranBukti" placeholder="https://..." />
-                <small class="text-muted">Upload bukti ke Google Drive dan masukkan link di sini</small>
+                <label for="pembayaranBukti" class="form-label"
+                  >Bukti Pembayaran (URL)</label
+                >
+                <input
+                  type="url"
+                  class="form-control"
+                  id="pembayaranBukti"
+                  placeholder="https://..."
+                />
+                <small class="text-muted"
+                  >Upload bukti ke Google Drive dan masukkan link di sini</small
+                >
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-            <button type="button" class="btn btn-primary" onclick="savePembayaran()">Simpan</button>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="savePembayaran()"
+            >
+              Simpan
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Add/Edit Pengeluaran -->
+    <div class="modal fade" id="pengeluaranEditModal" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="pengeluaranEditModalTitle">
+              Edit Pengeluaran
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <form id="pengeluaranEditForm">
+              <input type="hidden" id="pengeluaranEditId" />
+              <div class="mb-3">
+                <label for="pengeluaranEditKeterangan" class="form-label"
+                  >Keterangan <span class="text-danger">*</span></label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="pengeluaranEditKeterangan"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="pengeluaranEditNominal" class="form-label"
+                  >Nominal (Rp) <span class="text-danger">*</span></label
+                >
+                <input
+                  type="text"
+                  class="form-control"
+                  id="pengeluaranEditNominal"
+                  required
+                />
+              </div>
+              <div class="mb-3">
+                <label for="pengeluaranEditTanggal" class="form-label"
+                  >Tanggal <span class="text-danger">*</span></label
+                >
+                <input
+                  type="date"
+                  class="form-control"
+                  id="pengeluaranEditTanggal"
+                  required
+                />
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="saveEditPengeluaran()"
+            >
+              Simpan Perubahan
+            </button>
           </div>
         </div>
       </div>
@@ -559,16 +1062,24 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Bukti Pembayaran</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+            ></button>
           </div>
           <div class="modal-body text-center">
-            <iframe id="buktiFrame" style="width: 100%; height: 500px; border: none"></iframe>
+            <iframe
+              id="buktiFrame"
+              style="width: 100%; height: 500px; border: none"
+            ></iframe>
           </div>
         </div>
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>

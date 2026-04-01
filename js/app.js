@@ -21,6 +21,7 @@ const SHEETS = {
   TAHUN: "Tahun",
   MASTER_KAS: "MasterKas",
   PEMBAYARAN: "Pembayaran",
+  PENGELUARAN: "Pengeluaran",
 };
 
 // ========================================
@@ -121,6 +122,7 @@ let currentPersonalData = [];
 let currentTahunData = [];
 let currentMasterKasData = [];
 let currentPembayaranData = [];
+let currentPengeluaranData = [];
 
 // ========================================
 // UTILITIES FUNCTIONS
@@ -296,17 +298,58 @@ function getPaymentStatus(totalBayar, target) {
   return { selisih, status, statusBadge, selisihAbs: Math.abs(selisih) };
 }
 
+// ========================================
+// FUNGSI UNTUK MENGHITUNG TARGET TOTAL PER KAS
+// ========================================
+
+// Mendapatkan jumlah personal aktif
+function getJumlahPersonalAktif() {
+  let jumlah = 0;
+  for (let i = 1; i < currentPersonalData.length; i++) {
+    if (currentPersonalData[i][3] === "Aktif") {
+      jumlah++;
+    }
+  }
+  return jumlah;
+}
+
+// Mendapatkan target total per master kas (target per personal x jumlah personal aktif)
+function getTargetTotalPerKas(masterKasId) {
+  const masterKas = currentMasterKasData[masterKasId];
+  if (!masterKas) return 0;
+
+  const targetPerPersonal = parseFloat(masterKas[3] || 0);
+  const jumlahPersonalAktif = getJumlahPersonalAktif();
+
+  return targetPerPersonal * jumlahPersonalAktif;
+}
+
+// Mendapatkan total target keseluruhan (sum dari semua target per kas)
+function getTotalTargetKeseluruhan() {
+  let totalTarget = 0;
+  for (let i = 1; i < currentMasterKasData.length; i++) {
+    if (currentMasterKasData[i][4] === "Aktif") {
+      totalTarget += getTargetTotalPerKas(i);
+    }
+  }
+  return totalTarget;
+}
+
+// Mendapatkan data pembayaran yang sudah di-aggregate dengan target total
 function getDisplayPayments() {
   const aggregations = getAggregatedPayments();
   const displayData = [];
+  const jumlahPersonalAktif = getJumlahPersonalAktif();
 
   for (const key in aggregations) {
     const agg = aggregations[key];
     const masterKas = currentMasterKasData[agg.masterKasId];
-    const target = masterKas ? parseFloat(masterKas[3] || 0) : 0;
+    const targetPerPersonal = masterKas ? parseFloat(masterKas[3] || 0) : 0;
+    // Target total = target per personal x jumlah personal aktif (untuk ringkasan kas)
+    const targetTotal = targetPerPersonal * jumlahPersonalAktif;
     const { selisih, status, statusBadge } = getPaymentStatus(
       agg.totalBayar,
-      target,
+      targetTotal,
     );
 
     displayData.push({
@@ -314,8 +357,9 @@ function getDisplayPayments() {
       masterKasId: agg.masterKasId,
       masterKasName: masterKas ? masterKas[0] : "-",
       masterKasPeriode: masterKas ? masterKas[1] : "-",
+      targetPerPersonal: targetPerPersonal,
+      targetTotal: targetTotal,
       totalBayar: agg.totalBayar,
-      target: target,
       selisih: selisih,
       status: status,
       statusBadge: statusBadge,
@@ -604,14 +648,236 @@ async function updateSigninStatus(isSignedIn) {
 }
 
 // ========================================
+// FUNGSI PENGELUARAN
+// ========================================
+
+// Load data pengeluaran
+async function loadPengeluaranData() {
+  const data = await readSheet(SHEETS.PENGELUARAN);
+  currentPengeluaranData = data;
+  const tbody = document.getElementById("pengeluaranTableBody");
+  const searchTerm =
+    document.getElementById("searchPengeluaran")?.value.toLowerCase() || "";
+  const filterBulan =
+    document.getElementById("filterBulanPengeluaran")?.value || "";
+
+  if (!tbody) return;
+
+  if (data.length <= 1) {
+    tbody.innerHTML =
+      '<tr><td colspan="5" class="text-center">Belum ada data pengeluaran</td></tr>';
+    document.getElementById("totalPengeluaranFooter").textContent = "Rp 0";
+    return;
+  }
+
+  let html = "";
+  let total = 0;
+  let no = 1;
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    const tanggal = row[0] || "";
+    const keterangan = row[1] || "";
+    const nominal = parseFloat(row[2] || 0);
+
+    // Filter berdasarkan pencarian dan bulan
+    const matchSearch =
+      !searchTerm || keterangan.toLowerCase().includes(searchTerm);
+    const bulan = tanggal.split("-")[1];
+    const matchBulan = !filterBulan || bulan === filterBulan;
+
+    if (matchSearch && matchBulan) {
+      total += nominal;
+      html += `
+        <tr id="pengeluaran-row-${i}">
+          <td>${no++}</td>
+          <td>${formatDate(tanggal)}</td>
+          <td>${escapeHtml(keterangan)}</td>
+          <td>${formatRupiah(nominal)}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn btn-sm btn-warning" onclick="editPengeluaran(${i})" ${!isAuthenticated() ? "disabled" : ""}>
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-danger" onclick="deletePengeluaran(${i})" ${!isAuthenticated() ? "disabled" : ""}>
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+  }
+
+  if (no === 1) {
+    tbody.innerHTML =
+      '<tr><td colspan="5" class="text-center">Tidak ada data yang cocok</td></tr>';
+  } else {
+    tbody.innerHTML = html;
+  }
+
+  document.getElementById("totalPengeluaranFooter").textContent =
+    formatRupiah(total);
+}
+
+// Escape HTML untuk keamanan
+function escapeHtml(text) {
+  if (!text) return "";
+  const div = document.createElement("div");
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// Simpan pengeluaran baru
+async function savePengeluaran() {
+  const keterangan = document
+    .getElementById("pengeluaranKeterangan")
+    .value.trim();
+  const nominalInput = document.getElementById("pengeluaranNominal");
+  const nominalRaw = nominalInput.value.replace(/[^0-9]/g, "");
+  const nominal = parseInt(nominalRaw) || 0;
+  const tanggal = document.getElementById("pengeluaranTanggal").value;
+
+  if (!keterangan) {
+    showToast("Keterangan wajib diisi", "error");
+    return;
+  }
+
+  if (nominal <= 0) {
+    showToast("Nominal harus lebih dari 0", "error");
+    return;
+  }
+
+  if (!tanggal) {
+    showToast("Tanggal wajib diisi", "error");
+    return;
+  }
+
+  showLoading(true);
+
+  const values = [[tanggal, keterangan, nominal]];
+  const success = await appendSheet(SHEETS.PENGELUARAN, values);
+
+  if (success) {
+    // Reset form
+    document.getElementById("pengeluaranForm").reset();
+    document.getElementById("pengeluaranNominal").value = "";
+
+    // Set tanggal default ke hari ini
+    const today = new Date().toISOString().split("T")[0];
+    document.getElementById("pengeluaranTanggal").value = today;
+
+    await loadPengeluaranData();
+    await loadDashboardData();
+    showToast("Pengeluaran berhasil ditambahkan");
+  }
+
+  showLoading(false);
+}
+
+// Edit pengeluaran
+async function editPengeluaran(rowIndex) {
+  const row = currentPengeluaranData[rowIndex];
+  if (!row) {
+    showToast("Data tidak ditemukan", "error");
+    return;
+  }
+
+  document.getElementById("pengeluaranEditModalTitle").textContent =
+    "Edit Pengeluaran";
+  document.getElementById("pengeluaranEditId").value = rowIndex;
+  document.getElementById("pengeluaranEditKeterangan").value = row[1] || "";
+
+  // Setup nominal input dengan formatting
+  const nominalInput = document.getElementById("pengeluaranEditNominal");
+  nominalInput.value = formatNumber(parseFloat(row[2] || 0));
+  setupNominalInputForElement(nominalInput);
+
+  document.getElementById("pengeluaranEditTanggal").value = row[0] || "";
+
+  const modal = new bootstrap.Modal(
+    document.getElementById("pengeluaranEditModal"),
+  );
+  modal.show();
+}
+
+// Simpan edit pengeluaran
+async function saveEditPengeluaran() {
+  const rowIndex = document.getElementById("pengeluaranEditId").value;
+  const keterangan = document
+    .getElementById("pengeluaranEditKeterangan")
+    .value.trim();
+  const nominalInput = document.getElementById("pengeluaranEditNominal");
+  const nominalRaw = nominalInput.value.replace(/[^0-9]/g, "");
+  const nominal = parseInt(nominalRaw) || 0;
+  const tanggal = document.getElementById("pengeluaranEditTanggal").value;
+
+  if (!keterangan) {
+    showToast("Keterangan wajib diisi", "error");
+    return;
+  }
+
+  if (nominal <= 0) {
+    showToast("Nominal harus lebih dari 0", "error");
+    return;
+  }
+
+  if (!tanggal) {
+    showToast("Tanggal wajib diisi", "error");
+    return;
+  }
+
+  showLoading(true);
+
+  const values = [[tanggal, keterangan, nominal]];
+  const success = await writeSheet(
+    SHEETS.PENGELUARAN,
+    `A${parseInt(rowIndex) + 1}:C${parseInt(rowIndex) + 1}`,
+    values,
+  );
+
+  if (success) {
+    const modal = bootstrap.Modal.getInstance(
+      document.getElementById("pengeluaranEditModal"),
+    );
+    modal.hide();
+    await loadPengeluaranData();
+    await loadDashboardData();
+    showToast("Pengeluaran berhasil diperbarui");
+  }
+
+  showLoading(false);
+}
+
+// Hapus pengeluaran
+async function deletePengeluaran(rowIndex) {
+  if (!confirm("Yakin ingin menghapus data pengeluaran ini?")) return;
+
+  showLoading(true);
+  const success = await deleteRow(SHEETS.PENGELUARAN, rowIndex);
+
+  if (success) {
+    await loadPengeluaranData();
+    await loadDashboardData();
+    showToast("Pengeluaran berhasil dihapus");
+  }
+
+  showLoading(false);
+}
+
+// ========================================
 // DASHBOARD FUNCTIONS
 // ========================================
 
 function showDashboard() {
   const dashboardSection = document.getElementById("dashboardSection");
+  const pengeluaranSection = document.getElementById("pengeluaranSection");
   const dataMasterSection = document.getElementById("dataMasterSection");
+
   if (dashboardSection) dashboardSection.style.display = "block";
+  if (pengeluaranSection) pengeluaranSection.style.display = "none";
   if (dataMasterSection) dataMasterSection.style.display = "none";
+
   loadDashboardData();
 
   // Update active state pada navbar
@@ -624,11 +890,46 @@ function showDashboard() {
   });
 }
 
+function showPengeluaran() {
+  const dashboardSection = document.getElementById("dashboardSection");
+  const pengeluaranSection = document.getElementById("pengeluaranSection");
+  const dataMasterSection = document.getElementById("dataMasterSection");
+
+  if (dashboardSection) dashboardSection.style.display = "none";
+  if (pengeluaranSection) pengeluaranSection.style.display = "block";
+  if (dataMasterSection) dataMasterSection.style.display = "none";
+
+  // Set tanggal default ke hari ini
+  const today = new Date().toISOString().split("T")[0];
+  const tanggalInput = document.getElementById("pengeluaranTanggal");
+  if (tanggalInput && !tanggalInput.value) {
+    tanggalInput.value = today;
+  }
+
+  // Setup nominal input
+  setupNominalInput("pengeluaranNominal");
+
+  loadPengeluaranData();
+
+  // Update active state pada navbar
+  const navLinks = document.querySelectorAll(".navbar-nav .nav-link");
+  navLinks.forEach((link) => {
+    link.classList.remove("active");
+    if (link.textContent.includes("Pengeluaran")) {
+      link.classList.add("active");
+    }
+  });
+}
+
 function showDataMaster() {
   const dashboardSection = document.getElementById("dashboardSection");
+  const pengeluaranSection = document.getElementById("pengeluaranSection");
   const dataMasterSection = document.getElementById("dataMasterSection");
+
   if (dashboardSection) dashboardSection.style.display = "none";
+  if (pengeluaranSection) pengeluaranSection.style.display = "none";
   if (dataMasterSection) dataMasterSection.style.display = "block";
+
   refreshPaymentDisplay();
 
   // Update active state pada navbar
@@ -641,37 +942,84 @@ function showDataMaster() {
   });
 }
 
+// ========================================
+// UPDATE DASHBOARD
+// ========================================
+
 async function loadDashboardData() {
   const displayPayments = getDisplayPayments();
 
-  // Hitung total personal
-  const totalPersonal = currentPersonalData.length - 1;
+  // Hitung total personal aktif
+  const totalPersonalAktif = getJumlahPersonalAktif();
   const totalPersonalElem = document.getElementById("totalPersonal");
-  if (totalPersonalElem) totalPersonalElem.textContent = totalPersonal;
+  if (totalPersonalElem) totalPersonalElem.textContent = totalPersonalAktif;
 
-  // Hitung total setoran dan target
+  // Hitung total setoran
   let totalSetoran = 0;
-  let totalTarget = 0;
-
   for (const payment of displayPayments) {
     totalSetoran += payment.totalBayar;
   }
 
+  // Hitung total target keseluruhan (target per personal x jumlah personal aktif untuk setiap kas)
+  let totalTargetKeseluruhan = 0;
   for (let i = 1; i < currentMasterKasData.length; i++) {
     if (currentMasterKasData[i][4] === "Aktif") {
-      totalTarget += parseFloat(currentMasterKasData[i][3] || 0);
+      const targetPerPersonal = parseFloat(currentMasterKasData[i][3] || 0);
+      totalTargetKeseluruhan += targetPerPersonal * totalPersonalAktif;
     }
   }
 
+  // Hitung total pengeluaran
+  let totalPengeluaran = 0;
+  for (let i = 1; i < currentPengeluaranData.length; i++) {
+    totalPengeluaran += parseFloat(currentPengeluaranData[i][2] || 0);
+  }
+
+  // Hitung saldo kas
+  const totalSaldo = totalSetoran - totalPengeluaran;
+
+  // Update elemen dashboard
   const totalSetoranElem = document.getElementById("totalSetoran");
   const totalTargetElem = document.getElementById("totalTarget");
+  const totalPengeluaranElem = document.getElementById("totalPengeluaran");
+  const totalSaldoElem = document.getElementById("totalSaldo");
+  const persentaseElem = document.getElementById("totalPersentase");
+
   if (totalSetoranElem)
     totalSetoranElem.textContent = formatRupiah(totalSetoran);
-  if (totalTargetElem) totalTargetElem.textContent = formatRupiah(totalTarget);
+  if (totalTargetElem)
+    totalTargetElem.textContent = formatRupiah(totalTargetKeseluruhan);
+  if (totalPengeluaranElem)
+    totalPengeluaranElem.textContent = formatRupiah(totalPengeluaran);
+  if (totalSaldoElem) {
+    totalSaldoElem.textContent = formatRupiah(totalSaldo);
+    const card = totalSaldoElem.parentElement.parentElement;
+    if (totalSaldo < 0) {
+      card.classList.add("bg-danger");
+      card.classList.remove("bg-info");
+    } else {
+      card.classList.remove("bg-danger");
+      card.classList.add("bg-info");
+    }
+  }
 
-  const persentase = totalTarget > 0 ? (totalSetoran / totalTarget) * 100 : 0;
-  const persentaseElem = document.getElementById("totalPersentase");
-  if (persentaseElem) persentaseElem.textContent = `${persentase.toFixed(1)}%`;
+  // PERBAIKAN: Hitung persentase = (total setoran / total target keseluruhan) * 100
+  let persentaseTercapai = 0;
+  if (totalTargetKeseluruhan > 0) {
+    persentaseTercapai = (totalSetoran / totalTargetKeseluruhan) * 100;
+  }
+
+  // Tampilkan persentase (bisa lebih dari 100% jika setoran melebihi target)
+  if (persentaseElem) {
+    if (persentaseTercapai > 100) {
+      persentaseElem.textContent = `${persentaseTercapai.toFixed(1)}% (Melebihi Target)`;
+      persentaseElem.parentElement.parentElement.classList.add("bg-warning");
+      persentaseElem.parentElement.parentElement.classList.remove("bg-info");
+    } else {
+      persentaseElem.textContent = `${persentaseTercapai.toFixed(1)}%`;
+      persentaseElem.parentElement.parentElement.classList.remove("bg-warning");
+    }
+  }
 
   // Load ringkasan per master kas
   loadRingkasanKasTable(displayPayments);
@@ -695,27 +1043,223 @@ async function loadDashboardData() {
       loadRekapPersonalTable(displayPayments, filterValue);
     };
   }
+
+  // Update chart
+  updateCharts(
+    totalSetoran,
+    totalPengeluaran,
+    totalSaldo,
+    totalTargetKeseluruhan,
+    persentaseTercapai,
+  );
 }
+
+// Update chart dashboard
+let kasChart, persentaseChart;
+
+function updateCharts(
+  totalSetoran,
+  totalPengeluaran,
+  totalSaldo,
+  totalTarget,
+  persentaseTercapai,
+) {
+  // Chart untuk ringkasan kas (bar chart)
+  const kasCtx = document.getElementById("kasChart");
+  if (kasCtx && typeof Chart !== "undefined") {
+    if (kasChart) kasChart.destroy();
+    kasChart = new Chart(kasCtx, {
+      type: "bar",
+      data: {
+        labels: ["Setoran", "Pengeluaran", "Saldo"],
+        datasets: [
+          {
+            label: "Nominal (Rp)",
+            data: [totalSetoran, totalPengeluaran, totalSaldo],
+            backgroundColor: ["#34a853", "#ea4335", "#4285f4"],
+            borderColor: ["#2d8c45", "#d33c2e", "#3367d6"],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function (value) {
+                return "Rp " + formatNumber(value);
+              },
+            },
+          },
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                return (
+                  context.dataset.label + ": Rp " + formatNumber(context.raw)
+                );
+              },
+            },
+          },
+          legend: {
+            position: "top",
+          },
+        },
+      },
+    });
+  }
+
+  // Chart untuk persentase pencapaian target (pie chart)
+  const persenCtx = document.getElementById("persentaseChart");
+  if (persenCtx && typeof Chart !== "undefined") {
+    if (persentaseChart) persentaseChart.destroy();
+
+    // Untuk pie chart, batasi maksimal 100%
+    let displayPersentase = Math.min(persentaseTercapai, 100);
+    let sisaPersentase = Math.max(0, 100 - displayPersentase);
+    let lebihPersentase = Math.max(0, persentaseTercapai - 100);
+
+    const dataLabels = [];
+    const dataValues = [];
+    const dataColors = [];
+
+    if (totalTarget > 0) {
+      if (displayPersentase > 0) {
+        dataLabels.push(`Tercapai (${displayPersentase.toFixed(1)}%)`);
+        dataValues.push(displayPersentase);
+        dataColors.push("#34a853");
+      }
+
+      if (sisaPersentase > 0) {
+        dataLabels.push(`Sisa Target (${sisaPersentase.toFixed(1)}%)`);
+        dataValues.push(sisaPersentase);
+        dataColors.push("#e9ecef");
+      }
+
+      if (lebihPersentase > 0) {
+        dataLabels.push(`Melebihi Target (+${lebihPersentase.toFixed(1)}%)`);
+        dataValues.push(lebihPersentase);
+        dataColors.push("#ffc107");
+      }
+    } else if (totalSetoran > 0) {
+      dataLabels.push("Setoran Masuk");
+      dataValues.push(100);
+      dataColors.push("#34a853");
+    } else {
+      dataLabels.push("Belum Ada Target");
+      dataValues.push(100);
+      dataColors.push("#6c757d");
+    }
+
+    persentaseChart = new Chart(persenCtx, {
+      type: "pie",
+      data: {
+        labels: dataLabels,
+        datasets: [
+          {
+            data: dataValues,
+            backgroundColor: dataColors,
+            borderColor: ["#2d8c45", "#dee2e6", "#e0a800"],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function (context) {
+                const label = context.label || "";
+                const value = context.raw;
+                if (label.includes("Setoran Masuk") && totalTarget === 0) {
+                  return `Total Setoran: ${formatRupiah(totalSetoran)} (Belum ada target)`;
+                }
+                if (label.includes("Melebihi Target")) {
+                  return `${label}: Kelebihan ${formatRupiah(totalSetoran - totalTarget)}`;
+                }
+                return `${label}: ${value.toFixed(1)}%`;
+              },
+            },
+          },
+          legend: {
+            position: "bottom",
+            labels: {
+              font: {
+                size: 11,
+              },
+            },
+          },
+          title: {
+            display: true,
+            text: totalTarget > 0 ? "Pencapaian Target Kas" : "Status Setoran",
+            font: {
+              size: 14,
+              weight: "bold",
+            },
+            padding: {
+              bottom: 15,
+            },
+          },
+          subtitle: {
+            display: totalTarget > 0,
+            text: `Target: ${formatRupiah(totalTarget)} | Terkumpul: ${formatRupiah(totalSetoran)} | ${persentaseTercapai > 100 ? "Melebihi " + formatRupiah(totalSetoran - totalTarget) : ""}`,
+            font: {
+              size: 11,
+            },
+            padding: {
+              bottom: 5,
+            },
+          },
+        },
+        layout: {
+          padding: {
+            top: 10,
+            bottom: 10,
+          },
+        },
+      },
+    });
+  }
+}
+
+// ========================================
+// LOAD RINGKASAN KAS TABLE
+// ========================================
 
 function loadRingkasanKasTable(displayPayments) {
   const tbody = document.getElementById("ringkasanKasTable");
   if (!tbody) return;
 
   const kasSummary = {};
+  const jumlahPersonalAktif = getJumlahPersonalAktif();
 
+  // Inisialisasi summary untuk setiap master kas
   for (let i = 1; i < currentMasterKasData.length; i++) {
     const kas = currentMasterKasData[i];
     if (kas[4] === "Aktif") {
+      const targetPerPersonal = parseFloat(kas[3] || 0);
+      // Target total = target per personal x jumlah personal aktif
+      const targetTotal = targetPerPersonal * jumlahPersonalAktif;
+
       kasSummary[i] = {
         id: i,
         nama: kas[0],
         periode: kas[1],
-        target: parseFloat(kas[3] || 0),
+        targetPerPersonal: targetPerPersonal,
+        targetTotal: targetTotal,
         terkumpul: 0,
+        jumlahPersonal: jumlahPersonalAktif,
       };
     }
   }
 
+  // Akumulasi pembayaran dari setiap personal
   for (const payment of displayPayments) {
     if (kasSummary[payment.masterKasId]) {
       kasSummary[payment.masterKasId].terkumpul += payment.totalBayar;
@@ -724,7 +1268,7 @@ function loadRingkasanKasTable(displayPayments) {
 
   if (Object.keys(kasSummary).length === 0) {
     tbody.innerHTML =
-      '32<td colspan="7" class="text-center">Belum ada data kas</td></tr>';
+      '<td colspan="8" class="text-center">Belum ada data kas</div>2</div>';
     return;
   }
 
@@ -732,35 +1276,66 @@ function loadRingkasanKasTable(displayPayments) {
   let no = 1;
   for (const key in kasSummary) {
     const kas = kasSummary[key];
-    const selisih = kas.terkumpul - kas.target;
-    const persentase = kas.target > 0 ? (kas.terkumpul / kas.target) * 100 : 0;
+    const selisih = kas.terkumpul - kas.targetTotal;
+
+    // PERBAIKAN: Persentase = (total terkumpul / target total) * 100
+    let persentase = 0;
+    if (kas.targetTotal > 0) {
+      persentase = (kas.terkumpul / kas.targetTotal) * 100;
+      persentase = Math.min(persentase, 100); // Maksimal 100% untuk tampilan
+    } else if (kas.terkumpul > 0) {
+      persentase = 100;
+    }
+
     const selisihText =
       selisih >= 0
         ? `+${formatRupiah(selisih)}`
         : `-${formatRupiah(Math.abs(selisih))}`;
     const selisihClass = selisih >= 0 ? "text-success" : "text-danger";
 
+    // Tentukan warna progress bar
+    let progressBarClass = "bg-primary";
+    if (persentase >= 100) {
+      progressBarClass = "bg-success";
+    } else if (persentase >= 75) {
+      progressBarClass = "bg-info";
+    } else if (persentase >= 50) {
+      progressBarClass = "bg-primary";
+    } else if (persentase >= 25) {
+      progressBarClass = "bg-warning";
+    } else {
+      progressBarClass = "bg-danger";
+    }
+
     html += `
-      <tr>
+       <tr>
         <td>${no++}</td>
-        <td>${kas.nama}</td>
-        <td>${kas.periode}</td>
-        <td>${formatRupiah(kas.target)}</td>
-        <td>${formatRupiah(kas.terkumpul)}</td>
-        <td class="${selisihClass}">${selisihText}</td>
+        <td><strong>${escapeHtml(kas.nama)}</strong></td>
+        <td>${escapeHtml(kas.periode)}</td>
         <td>
-          <div class="progress" style="height: 20px;">
-            <div class="progress-bar ${persentase >= 100 ? "bg-success" : "bg-primary"}" 
-                 style="width: ${Math.min(persentase, 100)}%">
+          <div class="small">Target/Personal: ${formatRupiah(kas.targetPerPersonal)}</div>
+          <div class="fw-bold">Target Total: ${formatRupiah(kas.targetTotal)}</div>
+          <div class="small text-muted">(${kas.jumlahPersonal} personal aktif)</div>
+        </td>
+        <td class="fw-bold text-primary">${formatRupiah(kas.terkumpul)}</td>
+        <td class="${selisihClass} fw-bold">${selisihText}</td>
+        <td style="min-width: 150px">
+          <div class="progress" style="height: 25px;">
+            <div class="progress-bar ${progressBarClass}" 
+                 style="width: ${persentase}%">
               ${persentase.toFixed(1)}%
             </div>
           </div>
-        </td>
-      </tr>
+         </td>
+       </tr>
     `;
   }
   tbody.innerHTML = html;
 }
+
+// ========================================
+// LOAD REKAP PERSONAL TABLE
+// ========================================
 
 function loadRekapPersonalTable(displayPayments, filterKasId = "") {
   const tbody = document.getElementById("rekapPersonalTable");
@@ -799,30 +1374,83 @@ function loadRekapPersonalTable(displayPayments, filterKasId = "") {
     const personal = personalSummary[key];
     let detailsHtml = "";
     for (const payment of personal.payments) {
-      const targetText = formatRupiah(payment.target);
+      // Target per personal
+      const targetPerPersonal = payment.targetPerPersonal || 0;
+      const targetText = formatRupiah(targetPerPersonal);
       const bayarText = formatRupiah(payment.totalBayar);
-      const statusClass =
-        payment.status === "Lunas"
-          ? "text-success"
-          : payment.status === "Lebih"
-            ? "text-warning"
-            : "text-danger";
+
+      // Hitung selisih per personal
+      const selisihPersonal = payment.totalBayar - targetPerPersonal;
+
+      // Tentukan status personal (PERBAIKAN)
+      let statusPersonal = "";
+      let statusClass = "";
+      let progressBarClass = "";
+      let persentasePersonal = 0;
+
+      if (targetPerPersonal > 0) {
+        // Hitung persentase
+        persentasePersonal = (payment.totalBayar / targetPerPersonal) * 100;
+
+        if (selisihPersonal === 0) {
+          statusPersonal = "Lunas";
+          statusClass = "text-success";
+          progressBarClass = "bg-success";
+        } else if (selisihPersonal > 0) {
+          statusPersonal = "Lebih";
+          statusClass = "text-warning";
+          progressBarClass = "bg-warning";
+          // Batasi persentase untuk progress bar (maksimal 100%)
+          persentasePersonal = Math.min(persentasePersonal, 100);
+        } else {
+          statusPersonal = "Kurang";
+          statusClass = "text-danger";
+          progressBarClass = "bg-danger";
+          persentasePersonal = Math.min(persentasePersonal, 100);
+        }
+      } else if (payment.totalBayar > 0) {
+        // Jika tidak ada target tapi ada bayaran
+        statusPersonal = "Tanpa Target";
+        statusClass = "text-info";
+        progressBarClass = "bg-info";
+        persentasePersonal = 100;
+      } else {
+        statusPersonal = "Belum Bayar";
+        statusClass = "text-secondary";
+        progressBarClass = "bg-secondary";
+        persentasePersonal = 0;
+      }
+
+      // Format teks selisih
+      let selisihText = "";
+      if (selisihPersonal !== 0) {
+        if (selisihPersonal > 0) {
+          selisihText = ` (Kelebihan ${formatRupiah(selisihPersonal)})`;
+        } else {
+          selisihText = ` (Kekurangan ${formatRupiah(Math.abs(selisihPersonal))})`;
+        }
+      }
+
       detailsHtml += `
-        <div class="mb-1">
-          <strong>${payment.masterKasName}</strong><br>
-          Target: ${targetText} | Bayar: ${bayarText}<br>
-          Status: <span class="${statusClass}">${payment.status}</span>
-          ${payment.selisih !== 0 ? ` (${payment.selisih > 0 ? "+" : "-"}${formatRupiah(Math.abs(payment.selisih))})` : ""}
+        <div class="mb-2 p-2 border rounded">
+          <div class="fw-bold">${escapeHtml(payment.masterKasName)}</div>
+          <div class="small">Target: ${targetText} | Bayar: ${bayarText}</div>
+          <div>Status: <span class="${statusClass} fw-bold">${statusPersonal}</span>${selisihText}</div>
+          <div class="progress mt-1" style="height: 10px;">
+            <div class="progress-bar ${progressBarClass}" 
+                 style="width: ${persentasePersonal}%">
+            </div>
+          </div>
+          <div class="small text-muted mt-1">${persentasePersonal.toFixed(1)}% tercapai</div>
         </div>
-        <hr class="my-1">
       `;
     }
 
     html += `
       <tr>
         <td>${no++}</td>
-        <td><strong>${personal.personalName}</strong></td>
-        <td class="fw-bold">${formatRupiah(personal.totalBayar)}</td>
+        <td><strong>${escapeHtml(personal.personalName)}</strong></td>
+        <td class="fw-bold text-primary">${formatRupiah(personal.totalBayar)}</td>
         <td>${detailsHtml}</td>
       </tr>
     `;
@@ -842,6 +1470,7 @@ async function loadAllData() {
       loadTahunData(),
       loadMasterKasData(),
       loadPembayaranDataRaw(),
+      loadPengeluaranData(),
     ]);
     refreshPaymentDisplay();
     loadDashboardData();
@@ -1013,49 +1642,110 @@ async function loadPembayaranDataRaw() {
 function refreshPaymentDisplay() {
   const displayPayments = getDisplayPayments();
   const tbody = document.getElementById("pembayaranTableBody");
+
+  // Ambil nilai filter
+  const searchTerm =
+    document.getElementById("searchPembayaran")?.value.toLowerCase().trim() ||
+    "";
   const filterKas = document.getElementById("filterMasterKas")?.value;
   const filterStatus = document.getElementById("filterStatusPembayaran")?.value;
 
   if (!tbody) return;
 
   let filteredPayments = displayPayments;
+
+  // TAMBAHKAN: Filter berdasarkan pencarian nama personal
+  if (searchTerm) {
+    filteredPayments = filteredPayments.filter((p) =>
+      p.personalName.toLowerCase().includes(searchTerm),
+    );
+  }
+
+  // Filter berdasarkan jenis kas
   if (filterKas) {
     filteredPayments = filteredPayments.filter(
       (p) => p.masterKasId == filterKas,
     );
   }
+
+  // Filter berdasarkan status
   if (filterStatus) {
-    filteredPayments = filteredPayments.filter(
-      (p) => p.status === filterStatus,
-    );
+    filteredPayments = filteredPayments.filter((p) => {
+      // Hitung status berdasarkan selisih personal
+      const targetPerPersonal = p.targetPerPersonal || 0;
+      const selisihPersonal = p.totalBayar - targetPerPersonal;
+      let status = "";
+
+      if (targetPerPersonal > 0) {
+        if (selisihPersonal === 0) status = "Lunas";
+        else if (selisihPersonal > 0) status = "Lebih";
+        else status = "Kurang";
+      } else if (p.totalBayar > 0) {
+        status = "Tanpa Target";
+      } else {
+        status = "Belum Bayar";
+      }
+
+      return status === filterStatus;
+    });
   }
 
   if (filteredPayments.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="8" class="text-center">Belum ada data pembayaran</td></tr>';
+      '<td colspan="8" class="text-center">Tidak ada data yang sesuai</div></div>';
     return;
   }
 
   let html = "";
   let no = 1;
   for (const payment of filteredPayments) {
-    const targetText = formatRupiah(payment.target);
+    // Target per personal (kewajiban individu)
+    const targetPerPersonal = payment.targetPerPersonal || 0;
+    const targetText = formatRupiah(targetPerPersonal);
     const bayarText = formatRupiah(payment.totalBayar);
+
+    // Selisih personal = total bayar personal - target per personal
+    const selisihPersonal = payment.totalBayar - targetPerPersonal;
     const selisihText =
-      payment.selisih >= 0
-        ? `+${formatRupiah(payment.selisih)}`
-        : `-${formatRupiah(Math.abs(payment.selisih))}`;
-    const selisihClass = payment.selisih >= 0 ? "text-success" : "text-danger";
+      selisihPersonal >= 0
+        ? `+${formatRupiah(selisihPersonal)}`
+        : `-${formatRupiah(Math.abs(selisihPersonal))}`;
+    const selisihClass = selisihPersonal >= 0 ? "text-success" : "text-danger";
+
+    // Tentukan status berdasarkan selisih personal
+    let statusPersonal = "";
+    let statusBadge = "";
+    if (targetPerPersonal > 0) {
+      if (selisihPersonal === 0) {
+        statusPersonal = "Lunas";
+        statusBadge = "badge-lunas";
+      } else if (selisihPersonal > 0) {
+        statusPersonal = "Lebih";
+        statusBadge = "badge-lebih";
+      } else {
+        statusPersonal = "Kurang";
+        statusBadge = "badge-kurang";
+      }
+    } else if (payment.totalBayar > 0) {
+      statusPersonal = "Tanpa Target";
+      statusBadge = "badge-info";
+    } else {
+      statusPersonal = "Belum Bayar";
+      statusBadge = "badge-secondary";
+    }
 
     html += `
-      <tr>
+       
         <td>${no++}</td>
-        <td><strong>${payment.personalName}</strong></td>
-        <td>${payment.masterKasName}<br><small class="text-muted">${payment.masterKasPeriode}</small></td>
-        <td class="fw-bold">${bayarText}</div>
-        <td>${targetText}</div>
-        <td class="${selisihClass}">${selisihText}</div>
-        <td><span class="badge ${payment.statusBadge}">${payment.status}</span></div>
+        <td><strong>${escapeHtml(payment.personalName)}</strong></td>
+        <td>${escapeHtml(payment.masterKasName)}<br><small class="text-muted">${escapeHtml(payment.masterKasPeriode)}</small></td>
+        <td class="fw-bold">${bayarText}</td>
+        <td>
+          <div class="fw-bold">${targetText}</div>
+          <small class="text-muted">Target per Personal</small>
+        </td>
+        <td class="${selisihClass} fw-bold">${selisihText}</td>
+        <td><span class="badge ${statusBadge}">${statusPersonal}</span></td>
         <td>
           <div class="action-buttons">
             <button class="btn btn-sm btn-info" onclick="viewPaymentDetails('${payment.personalName}', ${payment.masterKasId})">
@@ -1074,8 +1764,8 @@ function refreshPaymentDisplay() {
                 : ""
             }
           </div>
-        </div>
-       </div>
+        </td>
+      </tr>
     `;
   }
   tbody.innerHTML = html;
@@ -2337,8 +3027,30 @@ function viewBukti(url) {
 
 // Setup filter listeners
 document.addEventListener("DOMContentLoaded", () => {
+  // Filter listeners untuk pengeluaran
+  const searchPengeluaran = document.getElementById("searchPengeluaran");
+  const filterBulanPengeluaran = document.getElementById(
+    "filterBulanPengeluaran",
+  );
+
+  if (searchPengeluaran) {
+    searchPengeluaran.addEventListener("input", () => loadPengeluaranData());
+  }
+  if (filterBulanPengeluaran) {
+    filterBulanPengeluaran.addEventListener("change", () =>
+      loadPengeluaranData(),
+    );
+  }
+
+  // Filter listeners untuk pembayaran
+  const searchPembayaran = document.getElementById("searchPembayaran"); // TAMBAHKAN INI
   const filterKas = document.getElementById("filterMasterKas");
   const filterStatus = document.getElementById("filterStatusPembayaran");
+
+  // TAMBAHKAN: Event listener untuk pencarian
+  if (searchPembayaran) {
+    searchPembayaran.addEventListener("input", () => refreshPaymentDisplay());
+  }
 
   if (filterKas) {
     filterKas.addEventListener("change", () => refreshPaymentDisplay());
@@ -2403,6 +3115,11 @@ window.saveEditedTransaction = saveEditedTransaction;
 window.showAddPaymentForPersonal = showAddPaymentForPersonal;
 window.refreshPaymentData = refreshPaymentData;
 window.updateEditPreview = updateEditPreview;
+window.savePengeluaran = savePengeluaran;
+window.editPengeluaran = editPengeluaran;
+window.saveEditPengeluaran = saveEditPengeluaran;
+window.deletePengeluaran = deletePengeluaran;
+window.showPengeluaran = showPengeluaran;
 
 // ========================================
 // INITIALIZATION
