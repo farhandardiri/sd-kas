@@ -1,0 +1,175 @@
+:root {
+  --primary-color: #4285f4;
+  --success-color: #34a853;
+  --warning-color: #fbbc04;
+  --danger-color: #ea4335;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.navbar {
+  background: linear-gradient(135deg, var(--primary-color) 0%, #3367d6 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.card-header {
+  background-color: #fff;
+  border-bottom: 2px solid #e9ecef;
+  font-weight: 600;
+  padding: 15px 20px;
+}
+
+.table-responsive {
+  border-radius: 8px;
+}
+
+.badge-lebih {
+  background-color: var(--success-color);
+}
+
+.badge-kurang {
+  background-color: var(--danger-color);
+}
+
+.badge-lunas {
+  background-color: var(--primary-color);
+}
+
+.btn-google {
+  background-color: #fff;
+  color: #757575;
+  border: 1px solid #ddd;
+}
+
+.btn-google:hover {
+  background-color: #f8f9fa;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.tab-content {
+  padding: 20px 0;
+}
+
+.modal-header {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.modal-header .btn-close {
+  filter: brightness(0) invert(1);
+}
+
+.form-label {
+  font-weight: 500;
+  color: #495057;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.9);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-overlay.show {
+  display: flex;
+}
+
+/* Dashboard Cards */
+.bg-primary,
+.bg-success,
+.bg-warning,
+.bg-info {
+  transition: all 0.3s ease;
+}
+
+.bg-primary:hover,
+.bg-success:hover,
+.bg-warning:hover,
+.bg-info:hover {
+  transform: scale(1.02);
+}
+
+.progress {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  transition: width 0.5s ease;
+}
+
+/* Table Styles */
+.table-hover tbody tr:hover {
+  background-color: rgba(66, 133, 244, 0.05);
+  cursor: pointer;
+}
+
+/* Navbar Links */
+.navbar-nav .nav-link {
+  color: rgba(255, 255, 255, 0.9);
+  transition: color 0.2s;
+}
+
+.navbar-nav .nav-link:hover {
+  color: white;
+}
+
+.navbar-nav .nav-link .active {
+  color: #34a853;
+}
+
+/* Modal Styles */
+.modal-content {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+/* Toast Container */
+#toastContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.toast {
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aplikasi Pembayaran Kas</title>
+        <link rel="icon" type="image/x-icon" href="blink.png" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -12,129 +13,12 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css"
     />
-    <style>
-      :root {
-        --primary-color: #4285f4;
-        --success-color: #34a853;
-        --warning-color: #fbbc04;
-        --danger-color: #ea4335;
-      }
-
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background-color: #f8f9fa;
-      }
-
-      .navbar {
-        background: linear-gradient(
-          135deg,
-          var(--primary-color) 0%,
-          #3367d6 100%
-        );
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-
-      .card {
-        border: none;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        margin-bottom: 20px;
-      }
-
-      .card-header {
-        background-color: #fff;
-        border-bottom: 2px solid #e9ecef;
-        font-weight: 600;
-        padding: 15px 20px;
-      }
-
-      .table-responsive {
-        border-radius: 8px;
-      }
-
-      .badge-lebih {
-        background-color: var(--success-color);
-      }
-
-      .badge-kurang {
-        background-color: var(--danger-color);
-      }
-
-      .badge-lunas {
-        background-color: var(--primary-color);
-      }
-
-      .btn-google {
-        background-color: #fff;
-        color: #757575;
-        border: 1px solid #ddd;
-      }
-
-      .btn-google:hover {
-        background-color: #f8f9fa;
-      }
-
-      .user-info {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .user-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-      }
-
-      .tab-content {
-        padding: 20px 0;
-      }
-
-      .modal-header {
-        background-color: var(--primary-color);
-        color: white;
-      }
-
-      .modal-header .btn-close {
-        filter: brightness(0) invert(1);
-      }
-
-      .form-label {
-        font-weight: 500;
-        color: #495057;
-      }
-
-      .action-buttons {
-        display: flex;
-        gap: 5px;
-      }
-
-      .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.9);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-      }
-
-      .loading-overlay.show {
-        display: flex;
-      }
-    </style>
+    <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
     <!-- Loading Overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-      <div
-        class="spinner-border text-primary"
-        role="status"
-        style="width: 3rem; height: 3rem"
-      >
+      <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem">
         <span class="visually-hidden">Loading...</span>
       </div>
     </div>
@@ -142,18 +26,25 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container-fluid">
-        <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="#" onclick="showDashboard()">
           <i class="bi bi-cash-coin"></i> Aplikasi Pembayaran Kas
         </a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-        >
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="#" onclick="showDashboard()">
+                <i class="bi bi-house-door"></i> Beranda
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#" onclick="showDataMaster()">
+                <i class="bi bi-database"></i> Data Master
+              </a>
+            </li>
+          </ul>
           <ul class="navbar-nav ms-auto">
             <li class="nav-item" id="loginSection">
               <button class="btn btn-google btn-sm" onclick="handleAuthClick()">
@@ -164,10 +55,7 @@
               <div class="user-info text-white">
                 <img id="userAvatar" class="user-avatar" src="" alt="User" />
                 <span id="userName"></span>
-                <button
-                  class="btn btn-outline-light btn-sm ms-2"
-                  onclick="handleSignoutClick()"
-                >
+                <button class="btn btn-outline-light btn-sm ms-2" onclick="handleSignoutClick()">
                   <i class="bi bi-box-arrow-right"></i> Logout
                 </button>
               </div>
@@ -179,255 +67,292 @@
 
     <!-- Main Content -->
     <div class="container-fluid mt-4">
-      <div class="row">
-        <div class="col-12">
-          <!-- Tabs Navigation -->
-          <ul class="nav nav-tabs" id="mainTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link active"
-                id="pembayaran-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#pembayaran"
-                type="button"
-              >
-                <i class="bi bi-cash-stack"></i> Pembayaran Kas
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link"
-                id="personal-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#personal"
-                type="button"
-              >
-                <i class="bi bi-people"></i> Master Personal
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link"
-                id="tahun-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#tahun"
-                type="button"
-              >
-                <i class="bi bi-calendar-range"></i> Master Tahun
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link"
-                id="master-kas-tab"
-                data-bs-toggle="tab"
-                data-bs-target="#master-kas"
-                type="button"
-              >
-                <i class="bi bi-wallet2"></i> Master Pembayaran Kas
-              </button>
-            </li>
-          </ul>
+      <!-- Dashboard/Beranda Section -->
+      <div id="dashboardSection">
+        <div class="row">
+          <div class="col-12">
+            <h2 class="mb-4">
+              <i class="bi bi-speedometer2"></i> Dashboard Pembayaran Kas
+            </h2>
+          </div>
+        </div>
 
-          <!-- Tabs Content -->
-          <div class="tab-content" id="mainTabContent">
-            <!-- Tab Pembayaran Kas -->
-            <div
-              class="tab-pane fade show active"
-              id="pembayaran"
-              role="tabpanel"
-            >
-              <div class="card">
-                <div
-                  class="card-header d-flex justify-content-between align-items-center"
-                >
-                  <h5 class="mb-0">
-                    <i class="bi bi-cash-stack"></i> Data Pembayaran Kas
-                  </h5>
-                  <button
-                    class="btn btn-primary btn-sm"
-                    onclick="showAddPembayaranModal()"
-                    id="btnAddPembayaran"
-                    disabled
-                  >
-                    <i class="bi bi-plus-circle"></i> Tambah Pembayaran
-                  </button>
+        <!-- Statistik Cards -->
+        <div class="row mb-4">
+          <div class="col-md-3">
+            <div class="card bg-primary text-white">
+              <div class="card-body">
+                <h5 class="card-title">Total Personal</h5>
+                <h2 id="totalPersonal">0</h2>
+                <small>Personal Terdaftar</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-success text-white">
+              <div class="card-body">
+                <h5 class="card-title">Total Setoran</h5>
+                <h2 id="totalSetoran">Rp 0</h2>
+                <small>Seluruh Pembayaran</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-warning text-white">
+              <div class="card-body">
+                <h5 class="card-title">Total Target</h5>
+                <h2 id="totalTarget">Rp 0</h2>
+                <small>Target Seluruh Kas</small>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="card bg-info text-white">
+              <div class="card-body">
+                <h5 class="card-title">Persentase</h5>
+                <h2 id="totalPersentase">0%</h2>
+                <small>Terkumpul dari Target</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ringkasan per Master Kas -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-wallet2"></i> Ringkasan per Jenis Kas</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  32<th>No</th>
+                    <th>Nama Kas</th>
+                    <th>Periode</th>
+                    <th>Target</th>
+                    <th>Terkumpul</th>
+                    <th>Sisa/Kelebihan</th>
+                    <th>Persentase</th>
+                  </tr>
+                </thead>
+                <tbody id="ringkasanKasTable">
+                  <tr>
+                    <td colspan="7" class="text-center">Loading data...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rekap Pembayaran per Personal -->
+        <div class="card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-people"></i> Rekap Pembayaran per Personal</h5>
+            <div class="row g-2 w-50">
+              <div class="col-md-12">
+                <select class="form-select form-select-sm" id="filterMasterKasRekap">
+                  <option value="">Semua Kas</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>No</th>
+                    <th>Nama Personal</th>
+                    <th>Total Bayar</th>
+                    <th>Detail Pembayaran</th>
+                  </tr>
+                </thead>
+                <tbody id="rekapPersonalTable">
+                  <tr>
+                    <td colspan="4" class="text-center">Loading data...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs Navigation untuk Menu Data Master -->
+      <div id="dataMasterSection" style="display: none;">
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="pembayaran-tab" data-bs-toggle="tab" data-bs-target="#pembayaran" type="button">
+              <i class="bi bi-cash-stack"></i> Pembayaran Kas
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" type="button">
+              <i class="bi bi-people"></i> Master Personal
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tahun-tab" data-bs-toggle="tab" data-bs-target="#tahun" type="button">
+              <i class="bi bi-calendar-range"></i> Master Tahun
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="master-kas-tab" data-bs-toggle="tab" data-bs-target="#master-kas" type="button">
+              <i class="bi bi-wallet2"></i> Master Pembayaran Kas
+            </button>
+          </li>
+        </ul>
+
+        <!-- Tabs Content -->
+        <div class="tab-content" id="mainTabContent">
+          <!-- Tab Pembayaran Kas -->
+          <div class="tab-pane fade show active" id="pembayaran" role="tabpanel">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-cash-stack"></i> Data Pembayaran Kas</h5>
+                <button class="btn btn-primary btn-sm" onclick="showAddPembayaranModal()" id="btnAddPembayaran" disabled>
+                  <i class="bi bi-plus-circle"></i> Tambah Pembayaran
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="row mb-3">
+                  <div class="col-md-4">
+                    <input type="text" class="form-control" id="searchPembayaran" placeholder="Cari nama personal..." />
+                  </div>
+                  <div class="col-md-3">
+                    <select class="form-select" id="filterMasterKas">
+                      <option value="">Semua Jenis Kas</option>
+                    </select>
+                  </div>
+                  <div class="col-md-3">
+                    <select class="form-select" id="filterStatusPembayaran">
+                      <option value="">Semua Status</option>
+                      <option value="Lunas">Lunas</option>
+                      <option value="Kurang">Kurang</option>
+                      <option value="Lebih">Lebih</option>
+                    </select>
+                  </div>
                 </div>
-                <div class="card-body">
-                  <div class="row mb-3">
-                    <div class="col-md-4">
-                      <input
-                        type="text"
-                        class="form-control"
-                        id="searchPembayaran"
-                        placeholder="Cari nama personal..."
-                      />
-                    </div>
-                    <div class="col-md-3">
-                      <select class="form-select" id="filterStatus">
-                        <option value="">Semua Status</option>
-                        <option value="Lunas">Lunas</option>
-                        <option value="Kurang">Kurang</option>
-                        <option value="Lebih">Lebih</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div class="table-responsive">
-                    <table class="table table-hover">
-                      <thead class="table-light">
-                        <tr>
-                          <th>No</th>
-                          <th>Nama Personal</th>
-                          <th>Tanggal</th>
-                          <th>Nominal</th>
-                          <th>Target</th>
-                          <th>Selisih</th>
-                          <th>Status</th>
-                          <th>Bukti</th>
-                          <th>Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody id="pembayaranTableBody">
-                        <tr>
-                          <td colspan="9" class="text-center">
-                            Loading data...
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>No</th>
+                        <th>Nama Personal</th>
+                        <th>Jenis Kas</th>
+                        <th>Total Bayar</th>
+                        <th>Target</th>
+                        <th>Selisih</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="pembayaranTableBody">
+                      <tr>
+                        <td colspan="8" class="text-center">Loading data...</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Tab Master Personal -->
-            <div class="tab-pane fade" id="personal" role="tabpanel">
-              <div class="card">
-                <div
-                  class="card-header d-flex justify-content-between align-items-center"
-                >
-                  <h5 class="mb-0">
-                    <i class="bi bi-people"></i> Master Personal
-                  </h5>
-                  <button
-                    class="btn btn-primary btn-sm"
-                    onclick="showAddPersonalModal()"
-                    id="btnAddPersonal"
-                    disabled
-                  >
-                    <i class="bi bi-plus-circle"></i> Tambah Personal
-                  </button>
-                </div>
-                <div class="card-body">
-                  <div class="table-responsive">
-                    <table class="table table-hover">
-                      <thead class="table-light">
-                        <tr>
-                          <th>No</th>
-                          <th>Nama</th>
-                          <th>Email</th>
-                          <th>No. HP</th>
-                          <th>Status</th>
-                          <th>Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody id="personalTableBody">
-                        <tr>
-                          <td colspan="6" class="text-center">
-                            Loading data...
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+          <!-- Tab Master Personal -->
+          <div class="tab-pane fade" id="personal" role="tabpanel">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-people"></i> Master Personal</h5>
+                <button class="btn btn-primary btn-sm" onclick="showAddPersonalModal()" id="btnAddPersonal" disabled>
+                  <i class="bi bi-plus-circle"></i> Tambah Personal
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>No</th>
+                        <th>Nama</th>
+                        <th>Email</th>
+                        <th>No. HP</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="personalTableBody">
+                      <tr>
+                        <td colspan="6" class="text-center">Loading data...</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Tab Master Tahun -->
-            <div class="tab-pane fade" id="tahun" role="tabpanel">
-              <div class="card">
-                <div
-                  class="card-header d-flex justify-content-between align-items-center"
-                >
-                  <h5 class="mb-0">
-                    <i class="bi bi-calendar-range"></i> Master Tahun
-                  </h5>
-                  <button
-                    class="btn btn-primary btn-sm"
-                    onclick="showAddTahunModal()"
-                    id="btnAddTahun"
-                    disabled
-                  >
-                    <i class="bi bi-plus-circle"></i> Tambah Tahun
-                  </button>
-                </div>
-                <div class="card-body">
-                  <div class="table-responsive">
-                    <table class="table table-hover">
-                      <thead class="table-light">
-                        <tr>
-                          <th>No</th>
-                          <th>Tahun</th>
-                          <th>Keterangan</th>
-                          <th>Status</th>
-                          <th>Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody id="tahunTableBody">
-                        <tr>
-                          <td colspan="5" class="text-center">
-                            Loading data...
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+          <!-- Tab Master Tahun -->
+          <div class="tab-pane fade" id="tahun" role="tabpanel">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-calendar-range"></i> Master Tahun</h5>
+                <button class="btn btn-primary btn-sm" onclick="showAddTahunModal()" id="btnAddTahun" disabled>
+                  <i class="bi bi-plus-circle"></i> Tambah Tahun
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>No</th>
+                        <th>Tahun</th>
+                        <th>Keterangan</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tahunTableBody">
+                      <tr>
+                        <td colspan="5" class="text-center">Loading data...</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Tab Master Pembayaran Kas -->
-            <div class="tab-pane fade" id="master-kas" role="tabpanel">
-              <div class="card">
-                <div
-                  class="card-header d-flex justify-content-between align-items-center"
-                >
-                  <h5 class="mb-0">
-                    <i class="bi bi-wallet2"></i> Master Pembayaran Kas
-                  </h5>
-                  <button
-                    class="btn btn-primary btn-sm"
-                    onclick="showAddMasterKasModal()"
-                    id="btnAddMasterKas"
-                    disabled
-                  >
-                    <i class="bi bi-plus-circle"></i> Tambah Master Kas
-                  </button>
-                </div>
-                <div class="card-body">
-                  <div class="table-responsive">
-                    <table class="table table-hover">
-                      <thead class="table-light">
-                        <tr>
-                          <th>No</th>
-                          <th>Nama Kas</th>
-                          <th>Periode</th>
-                          <th>Tahun</th>
-                          <th>Maksimal Setoran</th>
-                          <th>Status</th>
-                          <th>Aksi</th>
-                        </tr>
-                      </thead>
-                      <tbody id="masterKasTableBody">
-                        <tr>
-                          <td colspan="7" class="text-center">
-                            Loading data...
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+          <!-- Tab Master Pembayaran Kas -->
+          <div class="tab-pane fade" id="master-kas" role="tabpanel">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-wallet2"></i> Master Pembayaran Kas</h5>
+                <button class="btn btn-primary btn-sm" onclick="showAddMasterKasModal()" id="btnAddMasterKas" disabled>
+                  <i class="bi bi-plus-circle"></i> Tambah Master Kas
+                </button>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead class="table-light">
+                      <tr>
+                        <th>No</th>
+                        <th>Nama Kas</th>
+                        <th>Periode</th>
+                        <th>Tahun</th>
+                        <th>Maksimal Setoran</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody id="masterKasTableBody">
+                      <tr>
+                        <td colspan="7" class="text-center">Loading data...</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
@@ -442,25 +367,14 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="personalModalTitle">Tambah Personal</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <form id="personalForm">
               <input type="hidden" id="personalId" />
               <div class="mb-3">
-                <label for="personalNama" class="form-label"
-                  >Nama <span class="text-danger">*</span></label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="personalNama"
-                  required
-                />
+                <label for="personalNama" class="form-label">Nama <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="personalNama" required />
               </div>
               <div class="mb-3">
                 <label for="personalEmail" class="form-label">Email</label>
@@ -471,9 +385,7 @@
                 <input type="text" class="form-control" id="personalHP" />
               </div>
               <div class="mb-3">
-                <label for="personalStatus" class="form-label"
-                  >Status <span class="text-danger">*</span></label
-                >
+                <label for="personalStatus" class="form-label">Status <span class="text-danger">*</span></label>
                 <select class="form-select" id="personalStatus" required>
                   <option value="Aktif">Aktif</option>
                   <option value="Non-Aktif">Non-Aktif</option>
@@ -482,20 +394,8 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="savePersonal()"
-            >
-              Simpan
-            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" onclick="savePersonal()">Simpan</button>
           </div>
         </div>
       </div>
@@ -507,42 +407,21 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="tahunModalTitle">Tambah Tahun</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <form id="tahunForm">
               <input type="hidden" id="tahunId" />
               <div class="mb-3">
-                <label for="tahunValue" class="form-label"
-                  >Tahun <span class="text-danger">*</span></label
-                >
-                <input
-                  type="number"
-                  class="form-control"
-                  id="tahunValue"
-                  min="2000"
-                  max="2100"
-                  required
-                />
+                <label for="tahunValue" class="form-label">Tahun <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="tahunValue" min="2000" max="2100" required />
               </div>
               <div class="mb-3">
-                <label for="tahunKeterangan" class="form-label"
-                  >Keterangan</label
-                >
-                <textarea
-                  class="form-control"
-                  id="tahunKeterangan"
-                  rows="3"
-                ></textarea>
+                <label for="tahunKeterangan" class="form-label">Keterangan</label>
+                <textarea class="form-control" id="tahunKeterangan" rows="3"></textarea>
               </div>
               <div class="mb-3">
-                <label for="tahunStatus" class="form-label"
-                  >Status <span class="text-danger">*</span></label
-                >
+                <label for="tahunStatus" class="form-label">Status <span class="text-danger">*</span></label>
                 <select class="form-select" id="tahunStatus" required>
                   <option value="Aktif">Aktif</option>
                   <option value="Non-Aktif">Non-Aktif</option>
@@ -551,16 +430,8 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Batal
-            </button>
-            <button type="button" class="btn btn-primary" onclick="saveTahun()">
-              Simpan
-            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" onclick="saveTahun()">Simpan</button>
           </div>
         </div>
       </div>
@@ -571,66 +442,32 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="masterKasModalTitle">
-              Tambah Master Kas
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+            <h5 class="modal-title" id="masterKasModalTitle">Tambah Master Kas</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <form id="masterKasForm">
               <input type="hidden" id="masterKasId" />
               <div class="mb-3">
-                <label for="masterKasNama" class="form-label"
-                  >Nama Kas <span class="text-danger">*</span></label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="masterKasNama"
-                  required
-                />
+                <label for="masterKasNama" class="form-label">Nama Kas <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="masterKasNama" required />
               </div>
               <div class="mb-3">
-                <label for="masterKasPeriode" class="form-label"
-                  >Periode <span class="text-danger">*</span></label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="masterKasPeriode"
-                  placeholder="Contoh: Januari-Maret 2024"
-                  required
-                />
+                <label for="masterKasPeriode" class="form-label">Periode <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="masterKasPeriode" placeholder="Contoh: Januari-Maret 2024" required />
               </div>
               <div class="mb-3">
-                <label for="masterKasTahun" class="form-label"
-                  >Tahun <span class="text-danger">*</span></label
-                >
+                <label for="masterKasTahun" class="form-label">Tahun <span class="text-danger">*</span></label>
                 <select class="form-select" id="masterKasTahun" required>
                   <option value="">Pilih Tahun</option>
                 </select>
               </div>
               <div class="mb-3">
-                <label for="masterKasMax" class="form-label"
-                  >Maksimal Setoran (Rp)
-                  <span class="text-danger">*</span></label
-                >
-                <input
-                  type="number"
-                  class="form-control"
-                  id="masterKasMax"
-                  min="0"
-                  required
-                />
+                <label for="masterKasMax" class="form-label">Maksimal Setoran (Rp) <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="masterKasMax" required />
               </div>
               <div class="mb-3">
-                <label for="masterKasStatus" class="form-label"
-                  >Status <span class="text-danger">*</span></label
-                >
+                <label for="masterKasStatus" class="form-label">Status <span class="text-danger">*</span></label>
                 <select class="form-select" id="masterKasStatus" required>
                   <option value="Aktif">Aktif</option>
                   <option value="Non-Aktif">Non-Aktif</option>
@@ -639,20 +476,8 @@
             </form>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="saveMasterKas()"
-            >
-              Simpan
-            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" onclick="saveMasterKas()">Simpan</button>
           </div>
         </div>
       </div>
@@ -663,120 +488,66 @@
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="pembayaranModalTitle">
-              Tambah Pembayaran
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+            <h5 class="modal-title" id="pembayaranModalTitle">Tambah Pembayaran</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <form id="pembayaranForm">
               <input type="hidden" id="pembayaranId" />
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="pembayaranPersonal" class="form-label"
-                    >Nama Personal <span class="text-danger">*</span></label
-                  >
+                  <label for="pembayaranPersonal" class="form-label">Nama Personal <span class="text-danger">*</span></label>
                   <select class="form-select" id="pembayaranPersonal" required>
                     <option value="">Pilih Personal</option>
                   </select>
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label for="pembayaranTanggal" class="form-label"
-                    >Tanggal Pembayaran
-                    <span class="text-danger">*</span></label
-                  >
-                  <input
-                    type="date"
-                    class="form-control"
-                    id="pembayaranTanggal"
-                    required
-                  />
+                  <label for="pembayaranMasterKas" class="form-label">Jenis Kas <span class="text-danger">*</span></label>
+                  <select class="form-select" id="pembayaranMasterKas" required onchange="updateTargetNominal()">
+                    <option value="">Pilih Jenis Kas</option>
+                  </select>
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
-                  <label for="pembayaranMasterKas" class="form-label"
-                    >Jenis Kas <span class="text-danger">*</span></label
-                  >
-                  <select
-                    class="form-select"
-                    id="pembayaranMasterKas"
-                    required
-                    onchange="updateTargetNominal()"
-                  >
-                    <option value="">Pilih Jenis Kas</option>
-                  </select>
+                  <label for="pembayaranTanggal" class="form-label">Tanggal Pembayaran <span class="text-danger">*</span></label>
+                  <input type="date" class="form-control" id="pembayaranTanggal" required />
                 </div>
                 <div class="col-md-6 mb-3">
-                  <label for="pembayaranNominal" class="form-label"
-                    >Nominal Bayar (Rp)
-                    <span class="text-danger">*</span></label
-                  >
-                  <input
-                    type="number"
-                    class="form-control"
-                    id="pembayaranNominal"
-                    min="0"
-                    required
-                    onchange="calculateStatus()"
-                  />
+                  <label for="pembayaranNominal" class="form-label">Nominal Bayar (Rp) <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="pembayaranNominal" required onchange="calculateStatus()" />
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Target Nominal (Rp)</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="targetNominal"
-                    readonly
-                  />
+                  <input type="text" class="form-control" id="targetNominal" readonly />
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Total Sudah Dibayar (Rp)</label>
+                  <input type="text" class="form-control" id="totalSudahDibayar" readonly />
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label">Sisa/Kelebihan</label>
+                  <input type="text" class="form-control" id="sisaPreview" readonly />
                 </div>
                 <div class="col-md-6 mb-3">
                   <label class="form-label">Status Pembayaran</label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    id="statusPreview"
-                    readonly
-                  />
+                  <input type="text" class="form-control" id="statusPreview" readonly />
                 </div>
               </div>
               <div class="mb-3">
-                <label for="pembayaranBukti" class="form-label"
-                  >Bukti Pembayaran (URL)</label
-                >
-                <input
-                  type="url"
-                  class="form-control"
-                  id="pembayaranBukti"
-                  placeholder="https://..."
-                />
-                <small class="text-muted"
-                  >Upload bukti ke Google Drive dan masukkan link di sini</small
-                >
+                <label for="pembayaranBukti" class="form-label">Bukti Pembayaran (URL)</label>
+                <input type="url" class="form-control" id="pembayaranBukti" placeholder="https://..." />
+                <small class="text-muted">Upload bukti ke Google Drive dan masukkan link di sini</small>
               </div>
             </form>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Batal
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              onclick="savePembayaran()"
-            >
-              Simpan
-            </button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" onclick="savePembayaran()">Simpan</button>
           </div>
         </div>
       </div>
@@ -788,869 +559,16 @@
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">Bukti Pembayaran</h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-            ></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body text-center">
-            <iframe
-              id="buktiFrame"
-              style="width: 100%; height: 500px; border: none"
-            ></iframe>
+            <iframe id="buktiFrame" style="width: 100%; height: 500px; border: none"></iframe>
           </div>
         </div>
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script>
-      // ========================================
-      // KONFIGURASI - GANTI DENGAN DATA ANDA
-      // ========================================
-      const CONFIG = {
-        CLIENT_ID:
-          "234199179091-nuofe0hvh5875afo8cqdttupsk4quh5a.apps.googleusercontent.com",
-        API_KEY: "AIzaSyAhF8Z68x7r-NMaAqRUwx8N_4yCG0Vp6tE",
-        SPREADSHEET_ID: "1fprxhZDORuUdVAIXHvalJYkLTPWuZ_aP50I3p2Lw4h0",
-        SCOPES: "https://www.googleapis.com/auth/spreadsheets",
-      };
-
-      // Sheet names
-      const SHEETS = {
-        PERSONAL: "Personal",
-        TAHUN: "Tahun",
-        MASTER_KAS: "MasterKas",
-        PEMBAYARAN: "Pembayaran",
-      };
-
-      let tokenClient;
-      let gapiInited = false;
-      let gisInited = false;
-      let accessToken = null;
-
-      // ========================================
-      // INITIALIZE GOOGLE API
-      // ========================================
-      function gapiLoaded() {
-        gapi.load("client", initializeGapiClient);
-      }
-
-      async function initializeGapiClient() {
-        await gapi.client.init({
-          apiKey: CONFIG.API_KEY,
-          discoveryDocs: [
-            "https://sheets.googleapis.com/$discovery/rest?version=v4",
-          ],
-        });
-        gapiInited = true;
-        loadAllData();
-      }
-
-      function gisLoaded() {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: CONFIG.CLIENT_ID,
-          scope: CONFIG.SCOPES,
-          callback: "", // defined later
-        });
-        gisInited = true;
-      }
-
-      function handleAuthClick() {
-        tokenClient.callback = async (resp) => {
-          if (resp.error !== undefined) {
-            throw resp;
-          }
-          accessToken = gapi.client.getToken().access_token;
-          await updateSigninStatus(true);
-          enableEditButtons();
-        };
-
-        if (gapi.client.getToken() === null) {
-          tokenClient.requestAccessToken({ prompt: "consent" });
-        } else {
-          tokenClient.requestAccessToken({ prompt: "" });
-        }
-      }
-
-      function handleSignoutClick() {
-        const token = gapi.client.getToken();
-        if (token !== null) {
-          google.accounts.oauth2.revoke(token.access_token);
-          gapi.client.setToken("");
-          accessToken = null;
-        }
-        updateSigninStatus(false);
-        disableEditButtons();
-      }
-
-      async function updateSigninStatus(isSignedIn) {
-        if (isSignedIn) {
-          document.getElementById("loginSection").style.display = "none";
-          document.getElementById("userSection").style.display = "block";
-
-          // Get user info
-          try {
-            const response = await fetch(
-              "https://www.googleapis.com/oauth2/v1/userinfo?alt=json",
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`,
-                },
-              },
-            );
-            const userInfo = await response.json();
-            document.getElementById("userName").textContent = userInfo.name;
-            document.getElementById("userAvatar").src = userInfo.picture;
-          } catch (error) {
-            console.error("Error getting user info:", error);
-          }
-        } else {
-          document.getElementById("loginSection").style.display = "block";
-          document.getElementById("userSection").style.display = "none";
-        }
-      }
-
-      function enableEditButtons() {
-        document
-          .querySelectorAll('[id^="btnAdd"]')
-          .forEach((btn) => (btn.disabled = false));
-      }
-
-      function disableEditButtons() {
-        document
-          .querySelectorAll('[id^="btnAdd"]')
-          .forEach((btn) => (btn.disabled = true));
-      }
-
-      // ========================================
-      // GOOGLE SHEETS API FUNCTIONS
-      // ========================================
-      async function readSheet(sheetName, range = "A:Z") {
-        try {
-          const response = await gapi.client.sheets.spreadsheets.values.get({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            range: `${sheetName}!${range}`,
-          });
-          return response.result.values || [];
-        } catch (error) {
-          console.error(`Error reading ${sheetName}:`, error);
-          return [];
-        }
-      }
-
-      async function writeSheet(sheetName, range, values) {
-        if (!accessToken) {
-          alert("Silakan login terlebih dahulu!");
-          return false;
-        }
-
-        try {
-          await gapi.client.sheets.spreadsheets.values.update({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            range: `${sheetName}!${range}`,
-            valueInputOption: "USER_ENTERED",
-            resource: { values: values },
-          });
-          return true;
-        } catch (error) {
-          console.error(`Error writing to ${sheetName}:`, error);
-          alert("Gagal menyimpan data: " + error.message);
-          return false;
-        }
-      }
-
-      async function appendSheet(sheetName, values) {
-        if (!accessToken) {
-          alert("Silakan login terlebih dahulu!");
-          return false;
-        }
-
-        try {
-          await gapi.client.sheets.spreadsheets.values.append({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            range: `${sheetName}!A:Z`,
-            valueInputOption: "USER_ENTERED",
-            resource: { values: values },
-          });
-          return true;
-        } catch (error) {
-          console.error(`Error appending to ${sheetName}:`, error);
-          alert("Gagal menambah data: " + error.message);
-          return false;
-        }
-      }
-
-      async function deleteRow(sheetName, rowIndex) {
-        if (!accessToken) {
-          alert("Silakan login terlebih dahulu!");
-          return false;
-        }
-
-        if (!confirm("Yakin ingin menghapus data ini?")) {
-          return false;
-        }
-
-        try {
-          // Get sheet ID
-          const sheetMetadata = await gapi.client.sheets.spreadsheets.get({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-          });
-
-          const sheet = sheetMetadata.result.sheets.find(
-            (s) => s.properties.title === sheetName,
-          );
-          const sheetId = sheet.properties.sheetId;
-
-          // Delete row
-          await gapi.client.sheets.spreadsheets.batchUpdate({
-            spreadsheetId: CONFIG.SPREADSHEET_ID,
-            resource: {
-              requests: [
-                {
-                  deleteDimension: {
-                    range: {
-                      sheetId: sheetId,
-                      dimension: "ROWS",
-                      startIndex: rowIndex,
-                      endIndex: rowIndex + 1,
-                    },
-                  },
-                },
-              ],
-            },
-          });
-          return true;
-        } catch (error) {
-          console.error(`Error deleting row from ${sheetName}:`, error);
-          alert("Gagal menghapus data: " + error.message);
-          return false;
-        }
-      }
-
-      // ========================================
-      // DATA LOADING FUNCTIONS
-      // ========================================
-      async function loadAllData() {
-        showLoading(true);
-        await Promise.all([
-          loadPersonalData(),
-          loadTahunData(),
-          loadMasterKasData(),
-          loadPembayaranData(),
-        ]);
-        showLoading(false);
-      }
-
-      async function loadPersonalData() {
-        const data = await readSheet(SHEETS.PERSONAL);
-        const tbody = document.getElementById("personalTableBody");
-
-        if (data.length <= 1) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" class="text-center">Belum ada data personal</td></tr>';
-          return;
-        }
-
-        let html = "";
-        for (let i = 1; i < data.length; i++) {
-          const row = data[i];
-          const statusBadge = row[3] === "Aktif" ? "success" : "secondary";
-          html += `
-                    <tr>
-                        <td>${i}</td>
-                        <td>${row[0] || ""}</td>
-                        <td>${row[1] || ""}</td>
-                        <td>${row[2] || ""}</td>
-                        <td><span class="badge bg-${statusBadge}">${row[3] || ""}</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn btn-sm btn-warning" onclick="editPersonal(${i})" ${!accessToken ? "disabled" : ""}>
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="deletePersonal(${i})" ${!accessToken ? "disabled" : ""}>
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-        }
-        tbody.innerHTML = html;
-      }
-
-      async function loadTahunData() {
-        const data = await readSheet(SHEETS.TAHUN);
-        const tbody = document.getElementById("tahunTableBody");
-        const select = document.getElementById("masterKasTahun");
-
-        if (data.length <= 1) {
-          tbody.innerHTML =
-            '<tr><td colspan="5" class="text-center">Belum ada data tahun</td></tr>';
-          select.innerHTML = '<option value="">Pilih Tahun</option>';
-          return;
-        }
-
-        let html = "";
-        let options = '<option value="">Pilih Tahun</option>';
-
-        for (let i = 1; i < data.length; i++) {
-          const row = data[i];
-          const statusBadge = row[2] === "Aktif" ? "success" : "secondary";
-          html += `
-                    <tr>
-                        <td>${i}</td>
-                        <td>${row[0] || ""}</td>
-                        <td>${row[1] || ""}</td>
-                        <td><span class="badge bg-${statusBadge}">${row[2] || ""}</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn btn-sm btn-warning" onclick="editTahun(${i})" ${!accessToken ? "disabled" : ""}>
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteTahun(${i})" ${!accessToken ? "disabled" : ""}>
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-          if (row[2] === "Aktif") {
-            options += `<option value="${row[0]}">${row[0]}</option>`;
-          }
-        }
-        tbody.innerHTML = html;
-        select.innerHTML = options;
-      }
-
-      async function loadMasterKasData() {
-        const data = await readSheet(SHEETS.MASTER_KAS);
-        const tbody = document.getElementById("masterKasTableBody");
-        const select = document.getElementById("pembayaranMasterKas");
-
-        if (data.length <= 1) {
-          tbody.innerHTML =
-            '<tr><td colspan="7" class="text-center">Belum ada data master kas</td></tr>';
-          select.innerHTML = '<option value="">Pilih Jenis Kas</option>';
-          return;
-        }
-
-        let html = "";
-        let options = '<option value="">Pilih Jenis Kas</option>';
-
-        for (let i = 1; i < data.length; i++) {
-          const row = data[i];
-          const statusBadge = row[4] === "Aktif" ? "success" : "secondary";
-          const nominal = parseFloat(row[3] || 0).toLocaleString("id-ID");
-
-          html += `
-                    <tr>
-                        <td>${i}</td>
-                        <td>${row[0] || ""}</td>
-                        <td>${row[1] || ""}</td>
-                        <td>${row[2] || ""}</td>
-                        <td>Rp ${nominal}</td>
-                        <td><span class="badge bg-${statusBadge}">${row[4] || ""}</span></td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn btn-sm btn-warning" onclick="editMasterKas(${i})" ${!accessToken ? "disabled" : ""}>
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="deleteMasterKas(${i})" ${!accessToken ? "disabled" : ""}>
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-
-          if (row[4] === "Aktif") {
-            options += `<option value="${i}" data-max="${row[3]}">${row[0]} - ${row[1]}</option>`;
-          }
-        }
-        tbody.innerHTML = html;
-        select.innerHTML = options;
-      }
-
-      async function loadPembayaranData() {
-        const data = await readSheet(SHEETS.PEMBAYARAN);
-        const tbody = document.getElementById("pembayaranTableBody");
-        const personalSelect = document.getElementById("pembayaranPersonal");
-
-        // Load personal list for dropdown
-        const personalData = await readSheet(SHEETS.PERSONAL);
-        let personalOptions = '<option value="">Pilih Personal</option>';
-        for (let i = 1; i < personalData.length; i++) {
-          if (personalData[i][3] === "Aktif") {
-            personalOptions += `<option value="${personalData[i][0]}">${personalData[i][0]}</option>`;
-          }
-        }
-        personalSelect.innerHTML = personalOptions;
-
-        if (data.length <= 1) {
-          tbody.innerHTML =
-            '<tr><td colspan="9" class="text-center">Belum ada data pembayaran</td></tr>';
-          return;
-        }
-
-        let html = "";
-        for (let i = 1; i < data.length; i++) {
-          const row = data[i];
-          const nominal = parseFloat(row[2] || 0).toLocaleString("id-ID");
-          const target = parseFloat(row[3] || 0).toLocaleString("id-ID");
-          const selisih = parseFloat(row[4] || 0);
-          const selisihFormatted = Math.abs(selisih).toLocaleString("id-ID");
-          const status = row[5] || "";
-
-          let statusBadge = "badge-lunas";
-          if (status === "Lebih") statusBadge = "badge-lebih";
-          if (status === "Kurang") statusBadge = "badge-kurang";
-
-          const buktiBtn = row[6]
-            ? `
-                    <button class="btn btn-sm btn-info" onclick="viewBukti('${row[6]}')">
-                        <i class="bi bi-eye"></i>
-                    </button>
-                `
-            : "-";
-
-          html += `
-                    <tr>
-                        <td>${i}</td>
-                        <td>${row[0] || ""}</td>
-                        <td>${row[1] || ""}</td>
-                        <td>Rp ${nominal}</td>
-                        <td>Rp ${target}</td>
-                        <td>${selisih >= 0 ? "+" : "-"}Rp ${selisihFormatted}</td>
-                        <td><span class="badge ${statusBadge}">${status}</span></td>
-                        <td>${buktiBtn}</td>
-                        <td>
-                            <div class="action-buttons">
-                                <button class="btn btn-sm btn-warning" onclick="editPembayaran(${i})" ${!accessToken ? "disabled" : ""}>
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="deletePembayaran(${i})" ${!accessToken ? "disabled" : ""}>
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-        }
-        tbody.innerHTML = html;
-      }
-
-      // ========================================
-      // MODAL FUNCTIONS
-      // ========================================
-      function showAddPersonalModal() {
-        document.getElementById("personalModalTitle").textContent =
-          "Tambah Personal";
-        document.getElementById("personalForm").reset();
-        document.getElementById("personalId").value = "";
-        new bootstrap.Modal(document.getElementById("personalModal")).show();
-      }
-
-      async function editPersonal(rowIndex) {
-        const data = await readSheet(SHEETS.PERSONAL);
-        const row = data[rowIndex];
-
-        document.getElementById("personalModalTitle").textContent =
-          "Edit Personal";
-        document.getElementById("personalId").value = rowIndex;
-        document.getElementById("personalNama").value = row[0];
-        document.getElementById("personalEmail").value = row[1];
-        document.getElementById("personalHP").value = row[2];
-        document.getElementById("personalStatus").value = row[3];
-
-        new bootstrap.Modal(document.getElementById("personalModal")).show();
-      }
-
-      async function savePersonal() {
-        const form = document.getElementById("personalForm");
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        showLoading(true);
-        const rowIndex = document.getElementById("personalId").value;
-        const values = [
-          [
-            document.getElementById("personalNama").value,
-            document.getElementById("personalEmail").value,
-            document.getElementById("personalHP").value,
-            document.getElementById("personalStatus").value,
-          ],
-        ];
-
-        let success;
-        if (rowIndex) {
-          success = await writeSheet(
-            SHEETS.PERSONAL,
-            `A${parseInt(rowIndex) + 1}:D${parseInt(rowIndex) + 1}`,
-            values,
-          );
-        } else {
-          success = await appendSheet(SHEETS.PERSONAL, values);
-        }
-
-        if (success) {
-          bootstrap.Modal.getInstance(
-            document.getElementById("personalModal"),
-          ).hide();
-          await loadPersonalData();
-        }
-        showLoading(false);
-      }
-
-      async function deletePersonal(rowIndex) {
-        showLoading(true);
-        const success = await deleteRow(SHEETS.PERSONAL, rowIndex);
-        if (success) {
-          await loadPersonalData();
-        }
-        showLoading(false);
-      }
-
-      // Similar functions for Tahun
-      function showAddTahunModal() {
-        document.getElementById("tahunModalTitle").textContent = "Tambah Tahun";
-        document.getElementById("tahunForm").reset();
-        document.getElementById("tahunId").value = "";
-        new bootstrap.Modal(document.getElementById("tahunModal")).show();
-      }
-
-      async function editTahun(rowIndex) {
-        const data = await readSheet(SHEETS.TAHUN);
-        const row = data[rowIndex];
-
-        document.getElementById("tahunModalTitle").textContent = "Edit Tahun";
-        document.getElementById("tahunId").value = rowIndex;
-        document.getElementById("tahunValue").value = row[0];
-        document.getElementById("tahunKeterangan").value = row[1];
-        document.getElementById("tahunStatus").value = row[2];
-
-        new bootstrap.Modal(document.getElementById("tahunModal")).show();
-      }
-
-      async function saveTahun() {
-        const form = document.getElementById("tahunForm");
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        showLoading(true);
-        const rowIndex = document.getElementById("tahunId").value;
-        const values = [
-          [
-            document.getElementById("tahunValue").value,
-            document.getElementById("tahunKeterangan").value,
-            document.getElementById("tahunStatus").value,
-          ],
-        ];
-
-        let success;
-        if (rowIndex) {
-          success = await writeSheet(
-            SHEETS.TAHUN,
-            `A${parseInt(rowIndex) + 1}:C${parseInt(rowIndex) + 1}`,
-            values,
-          );
-        } else {
-          success = await appendSheet(SHEETS.TAHUN, values);
-        }
-
-        if (success) {
-          bootstrap.Modal.getInstance(
-            document.getElementById("tahunModal"),
-          ).hide();
-          await loadTahunData();
-          await loadMasterKasData(); // Refresh dropdown tahun
-        }
-        showLoading(false);
-      }
-
-      async function deleteTahun(rowIndex) {
-        showLoading(true);
-        const success = await deleteRow(SHEETS.TAHUN, rowIndex);
-        if (success) {
-          await loadTahunData();
-        }
-        showLoading(false);
-      }
-
-      // Similar functions for Master Kas
-      function showAddMasterKasModal() {
-        document.getElementById("masterKasModalTitle").textContent =
-          "Tambah Master Kas";
-        document.getElementById("masterKasForm").reset();
-        document.getElementById("masterKasId").value = "";
-        new bootstrap.Modal(document.getElementById("masterKasModal")).show();
-      }
-
-      async function editMasterKas(rowIndex) {
-        const data = await readSheet(SHEETS.MASTER_KAS);
-        const row = data[rowIndex];
-
-        document.getElementById("masterKasModalTitle").textContent =
-          "Edit Master Kas";
-        document.getElementById("masterKasId").value = rowIndex;
-        document.getElementById("masterKasNama").value = row[0];
-        document.getElementById("masterKasPeriode").value = row[1];
-        document.getElementById("masterKasTahun").value = row[2];
-        document.getElementById("masterKasMax").value = row[3];
-        document.getElementById("masterKasStatus").value = row[4];
-
-        new bootstrap.Modal(document.getElementById("masterKasModal")).show();
-      }
-
-      async function saveMasterKas() {
-        const form = document.getElementById("masterKasForm");
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        showLoading(true);
-        const rowIndex = document.getElementById("masterKasId").value;
-        const values = [
-          [
-            document.getElementById("masterKasNama").value,
-            document.getElementById("masterKasPeriode").value,
-            document.getElementById("masterKasTahun").value,
-            document.getElementById("masterKasMax").value,
-            document.getElementById("masterKasStatus").value,
-          ],
-        ];
-
-        let success;
-        if (rowIndex) {
-          success = await writeSheet(
-            SHEETS.MASTER_KAS,
-            `A${parseInt(rowIndex) + 1}:E${parseInt(rowIndex) + 1}`,
-            values,
-          );
-        } else {
-          success = await appendSheet(SHEETS.MASTER_KAS, values);
-        }
-
-        if (success) {
-          bootstrap.Modal.getInstance(
-            document.getElementById("masterKasModal"),
-          ).hide();
-          await loadMasterKasData();
-        }
-        showLoading(false);
-      }
-
-      async function deleteMasterKas(rowIndex) {
-        showLoading(true);
-        const success = await deleteRow(SHEETS.MASTER_KAS, rowIndex);
-        if (success) {
-          await loadMasterKasData();
-        }
-        showLoading(false);
-      }
-
-      // Pembayaran functions
-      function showAddPembayaranModal() {
-        document.getElementById("pembayaranModalTitle").textContent =
-          "Tambah Pembayaran";
-        document.getElementById("pembayaranForm").reset();
-        document.getElementById("pembayaranId").value = "";
-        document.getElementById("targetNominal").value = "";
-        document.getElementById("statusPreview").value = "";
-        new bootstrap.Modal(document.getElementById("pembayaranModal")).show();
-      }
-
-      async function editPembayaran(rowIndex) {
-        const data = await readSheet(SHEETS.PEMBAYARAN);
-        const row = data[rowIndex];
-
-        document.getElementById("pembayaranModalTitle").textContent =
-          "Edit Pembayaran";
-        document.getElementById("pembayaranId").value = rowIndex;
-        document.getElementById("pembayaranPersonal").value = row[0];
-        document.getElementById("pembayaranTanggal").value = row[1];
-        document.getElementById("pembayaranNominal").value = row[2];
-        document.getElementById("targetNominal").value =
-          "Rp " + parseFloat(row[3] || 0).toLocaleString("id-ID");
-        document.getElementById("statusPreview").value = row[5];
-        document.getElementById("pembayaranBukti").value = row[6];
-
-        // Set master kas dropdown - need to find the right option
-        const masterKasData = await readSheet(SHEETS.MASTER_KAS);
-        for (let i = 1; i < masterKasData.length; i++) {
-          if (masterKasData[i][3] == row[3]) {
-            // Match by max nominal
-            document.getElementById("pembayaranMasterKas").value = i;
-            break;
-          }
-        }
-
-        new bootstrap.Modal(document.getElementById("pembayaranModal")).show();
-      }
-
-      function updateTargetNominal() {
-        const select = document.getElementById("pembayaranMasterKas");
-        const option = select.options[select.selectedIndex];
-        const maxNominal = option.getAttribute("data-max");
-
-        if (maxNominal) {
-          document.getElementById("targetNominal").value =
-            "Rp " + parseFloat(maxNominal).toLocaleString("id-ID");
-          calculateStatus();
-        }
-      }
-
-      function calculateStatus() {
-        const select = document.getElementById("pembayaranMasterKas");
-        const option = select.options[select.selectedIndex];
-        const maxNominal = parseFloat(option.getAttribute("data-max") || 0);
-        const nominal = parseFloat(
-          document.getElementById("pembayaranNominal").value || 0,
-        );
-
-        if (maxNominal > 0 && nominal > 0) {
-          const selisih = nominal - maxNominal;
-          let status;
-
-          if (selisih === 0) {
-            status = "Lunas";
-          } else if (selisih > 0) {
-            status = `Lebih (Rp ${selisih.toLocaleString("id-ID")})`;
-          } else {
-            status = `Kurang (Rp ${Math.abs(selisih).toLocaleString("id-ID")})`;
-          }
-
-          document.getElementById("statusPreview").value = status;
-        }
-      }
-
-      async function savePembayaran() {
-        const form = document.getElementById("pembayaranForm");
-        if (!form.checkValidity()) {
-          form.reportValidity();
-          return;
-        }
-
-        showLoading(true);
-        const rowIndex = document.getElementById("pembayaranId").value;
-
-        const select = document.getElementById("pembayaranMasterKas");
-        const option = select.options[select.selectedIndex];
-        const maxNominal = parseFloat(option.getAttribute("data-max") || 0);
-        const nominal = parseFloat(
-          document.getElementById("pembayaranNominal").value,
-        );
-        const selisih = nominal - maxNominal;
-
-        let status;
-        if (selisih === 0) status = "Lunas";
-        else if (selisih > 0) status = "Lebih";
-        else status = "Kurang";
-
-        const values = [
-          [
-            document.getElementById("pembayaranPersonal").value,
-            document.getElementById("pembayaranTanggal").value,
-            nominal,
-            maxNominal,
-            selisih,
-            status,
-            document.getElementById("pembayaranBukti").value || "",
-          ],
-        ];
-
-        let success;
-        if (rowIndex) {
-          success = await writeSheet(
-            SHEETS.PEMBAYARAN,
-            `A${parseInt(rowIndex) + 1}:G${parseInt(rowIndex) + 1}`,
-            values,
-          );
-        } else {
-          success = await appendSheet(SHEETS.PEMBAYARAN, values);
-        }
-
-        if (success) {
-          bootstrap.Modal.getInstance(
-            document.getElementById("pembayaranModal"),
-          ).hide();
-          await loadPembayaranData();
-        }
-        showLoading(false);
-      }
-
-      async function deletePembayaran(rowIndex) {
-        showLoading(true);
-        const success = await deleteRow(SHEETS.PEMBAYARAN, rowIndex);
-        if (success) {
-          await loadPembayaranData();
-        }
-        showLoading(false);
-      }
-
-      function viewBukti(url) {
-        document.getElementById("buktiFrame").src = url;
-        new bootstrap.Modal(document.getElementById("buktiModal")).show();
-      }
-
-      // ========================================
-      // UTILITY FUNCTIONS
-      // ========================================
-      function showLoading(show) {
-        const overlay = document.getElementById("loadingOverlay");
-        if (show) {
-          overlay.classList.add("show");
-        } else {
-          overlay.classList.remove("show");
-        }
-      }
-
-      // Search and filter
-      document
-        .getElementById("searchPembayaran")
-        ?.addEventListener("input", filterPembayaran);
-      document
-        .getElementById("filterStatus")
-        ?.addEventListener("change", filterPembayaran);
-
-      function filterPembayaran() {
-        const searchTerm = document
-          .getElementById("searchPembayaran")
-          .value.toLowerCase();
-        const statusFilter = document.getElementById("filterStatus").value;
-        const rows = document.querySelectorAll("#pembayaranTableBody tr");
-
-        rows.forEach((row) => {
-          const name = row.cells[1]?.textContent.toLowerCase() || "";
-          const status = row.cells[6]?.textContent || "";
-
-          const matchSearch = name.includes(searchTerm);
-          const matchStatus = !statusFilter || status.includes(statusFilter);
-
-          row.style.display = matchSearch && matchStatus ? "" : "none";
-        });
-      }
-
-      // Initialize on load
-      window.onload = () => {
-        // Load Google API
-        const script1 = document.createElement("script");
-        script1.src = "https://apis.google.com/js/api.js";
-        script1.onload = gapiLoaded;
-        document.body.appendChild(script1);
-
-        const script2 = document.createElement("script");
-        script2.src = "https://accounts.google.com/gsi/client";
-        script2.onload = gisLoaded;
-        document.body.appendChild(script2);
-      };
-    </script>
+    <script src="js/app.js"></script>
   </body>
 </html>
